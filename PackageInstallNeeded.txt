@@ -1,0 +1,19 @@
+Typescript ReactJS
+Backend:ExpressJS, NodeJS, MongoDB
+
+init -y(khơỉ tạo package.json)
+npm install express(express.js)
+npm install nodemon -D(hỗ trợ nodejs)
+npm install mongoose(MongoDB)
+npm install dotenv(truy cập các biến môi trường)
+npm install(i) axios(call API)
+npm install react-router
+npm install cors(gộp địa chỉ local của backend và )
+
+
+Frontend:Tailwindcss, Shadcn/ui
+npm create vite@latest
+npm i sonner lucide-react
+tailwindcss(css cho components)
+shadcn/ui(1 số components có sẵn để tái sử dụng)
+patterncraft.fun(trang web 1 số backgrounds đẹp)
