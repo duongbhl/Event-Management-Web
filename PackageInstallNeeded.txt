@@ -1,6 +1,13 @@
 Typescript ReactJS
 Backend:ExpressJS, NodeJS, MongoDB
 
+
+Bạn đã cài hết dưới đây cho mn rồi, chỉ cần vào folder frontend và backend rồi npm install là xong
+
+
+
+
+KHÔNG CẦN CÀI DƯỚI ĐÂY NỮA
 init -y(khơỉ tạo package.json)
 npm install express(express.js)
 npm install nodemon -D(hỗ trợ nodejs)
@@ -17,3 +24,5 @@ npm i sonner lucide-react
 tailwindcss(css cho components)
 shadcn/ui(1 số components có sẵn để tái sử dụng)
 patterncraft.fun(trang web 1 số backgrounds đẹp)
+
+
