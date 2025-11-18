@@ -9,6 +9,9 @@ import Profile from './pages/profile';
 import MyRegistrations from './pages/my_regis';
 import Events from './pages/Events';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -24,6 +27,9 @@ function App() {
         <Route path="/registrations" element={<MyRegistrations />} />
         <Route path="/events" element={<Events />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   );
