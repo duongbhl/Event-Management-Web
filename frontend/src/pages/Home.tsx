@@ -1,9 +1,9 @@
 import React from 'react';
 import { Search, Calendar, Users } from 'lucide-react';
+
 import type { LucideIcon } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
+
 
 // QuickAccessCard
 interface QuickAccessCardProps {
@@ -12,12 +12,14 @@ interface QuickAccessCardProps {
     description: string;
     buttonText: string;
     to: string;
+
 }
 
 // CategoryFilter
 interface CategoryFilterProps {
     categories: string[];
 }
+
 const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
     icon: Icon,
     title,
@@ -25,6 +27,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
     buttonText,
     to
 }) => (
+
     <Link
         to={to}
         className="flex flex-col items-center p-6 bg-white border border-gray-200 rounded-lg shadow-md transition hover:shadow-lg hover:border-orange-400"
@@ -32,6 +35,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
         <Icon className="w-10 h-10 text-orange-500 mb-4" />
         <h3 className="text-xl font-semibold text-gray-800 mb-1">{title}</h3>
         <p className="text-sm text-gray-500 text-center mb-6 grow">{description}</p>
+
         <div
             className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
         >
@@ -43,6 +47,7 @@ const QuickAccessCard: React.FC<QuickAccessCardProps> = ({
 const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories }) => (
     <div className="flex space-x-2 p-2 bg-gray-50 border-y border-gray-200 overflow-x-auto">
         {categories.map((cat: string, index: number) => (
+
             <button
                 key={index}
                 className={`px-4 py-1.5 text-sm rounded-lg whitespace-nowrap transition 
@@ -61,6 +66,7 @@ const Home: React.FC = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col">
 
             <main className="container mx-auto p-4 sm:p-6 lg:p-8 grow">
+
 
                 {/* Tiêu đề Trang: Discover Campus Events */}
                 <h1 className="text-3xl font-bold text-gray-800 mb-6 mt-2">
@@ -88,6 +94,10 @@ const Home: React.FC = () => {
                         <p className="text-gray-500">Please navigate to the "Events" page for the full listing and search features.</p>
                     </div>
                 </section>
+
+
+
+                
 
                 {/* --- Phần 1: Quick Access Section --- */}
                 <section className="mb-10">

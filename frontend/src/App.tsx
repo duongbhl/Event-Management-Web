@@ -12,29 +12,33 @@ import Login from './pages/Login';
 import Analytics from './pages/Analytics';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
-    <>
-      <BrowserRouter>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/myevent" element={<MyEvents />} />
-          <Route path="/view-details" element={<ViewDetails />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/feedback-view/:id" element={<FeedbackView />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path='/analytics' element={<Analytics />}></Route>
-          <Route path="/registrations" element={<MyRegistrations />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-        <Footer/>
-      </BrowserRouter>
-    </>
 
+    <BrowserRouter>
+    <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} /> 
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/myevent" element={<MyEvents />} />
+        <Route path="/view-details" element={<ViewDetails />} />
+        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/feedback-view/:id" element={<FeedbackView />} />
+        <Route path='/analytics' element={<Analytics/>}></Route>
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/registrations" element={<MyRegistrations />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+      </Routes>
+      <Footer/>
+    </BrowserRouter>
   );
 }
 export default App;
