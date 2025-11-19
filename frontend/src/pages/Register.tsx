@@ -1,7 +1,7 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Mail, Lock, User, IdCard, UserCircle } from 'lucide-react';
+import { Mail, Lock, User} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -23,9 +23,7 @@ const Register: React.FC = () => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFormData((prev) => ({ ...prev, role: e.target.value }));
-    };
+    
 
     const validateForm = () => {
         // Reset error
@@ -151,27 +149,7 @@ const Register: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Roll Number Field */}
-                        <div>
-                            <label htmlFor="rollNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                                Roll Number
-                            </label>
-                            <div className="relative">
-                                <IdCard className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                                <input
-                                    id="rollNumber"
-                                    name="rollNumber"
-                                    type="text"
-                                    value={formData.rollNumber}
-                                    onChange={handleChange}
-                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
-                                    placeholder="e.g. tu6241103111042"
-                                />
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                                Required for students. Format: tu followed by 13 digits
-                            </p>
-                        </div>
+                        
 
                         {/* Email Field */}
                         <div>
@@ -195,28 +173,7 @@ const Register: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Role Selection */}
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                                Role
-                            </label>
-                            <div className="relative">
-                                <UserCircle className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                                <select
-                                    id="role"
-                                    name="role"
-                                    value={formData.role}
-                                    onChange={handleRoleChange}
-                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none bg-white"
-                                >
-                                    <option value="student">Student</option>
-                                    <option value="admin">Administrator</option>
-                                </select>
-                                <svg className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
+                        
 
                         {/* Password Field */}
                         <div>
