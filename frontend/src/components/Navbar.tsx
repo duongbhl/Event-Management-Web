@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
                     <NavItem to="/events">Events</NavItem>
                     <NavItem to="/calendar">Calendar</NavItem>
                     <NavItem to="/myevent">My Events</NavItem>
-                    <NavItem to="/registrations">My Registrations</NavItem>
+                    <NavItem to="/addevent">Add Event</NavItem>
                     <NavItem to="/analytics">Analytics</NavItem>
                     <NavItem to="/profile">Profile</NavItem>
                       

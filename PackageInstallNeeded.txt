@@ -6,7 +6,6 @@ Bạn đã cài hết dưới đây cho mn rồi, chỉ cần vào folder fronte
 
 
 
-
 KHÔNG CẦN CÀI DƯỚI ĐÂY NỮA
 init -y(khơỉ tạo package.json)
 npm install express(express.js)

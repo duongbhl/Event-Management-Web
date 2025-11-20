@@ -1,6 +1,4 @@
-import { Clock, MapPin, Calendar as CalendarIcon, Edit, Users, Settings } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { Clock, MapPin, Calendar as CalendarIcon, Edit, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import React from 'react';
 
@@ -61,7 +59,7 @@ const MyEventTabs: React.FC<MyEventTabsProps> = ({ activeTab, onTabChange }) => 
 };
 
 // --- 1. Registered Event Card ---
-const RegisteredEventCard: React.FC<{ event: EventData }> = ({ event }) => (
+export const RegisteredEventCard: React.FC<{ event: EventData }> = ({ event }) => (
     <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden">
         <div className="flex">
             <div className="w-1/4 bg-gray-100 flex items-center justify-center">
@@ -102,7 +100,7 @@ const RegisteredEventCard: React.FC<{ event: EventData }> = ({ event }) => (
 );
 
 // --- 2. Past Event Card ---
-const PastEventCard: React.FC<{ event: PastEventData }> = ({ event }) => (
+export const PastEventCard: React.FC<{ event: PastEventData }> = ({ event }) => (
     <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden relative">
         <div className="flex">
             {/* Trạng thái Attended */}
@@ -205,8 +203,8 @@ export const CreatedEventCard: React.FC<{ event: CreatedEventData }> = ({ event 
                     {/* Actions */}
                     <div className="flex space-x-3">
                         <button className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition flex items-center"><Settings className="w-4 h-4 mr-1" /> Manage Event</button>
-                        <button className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition flex items-center"><Users className="w-4 h-4 mr-1" /> View Attendees</button>
-                        <Link to="/registrations" className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition flex items-center"><Edit className="w-4 h-4 mr-1" /> Edit Event</Link>
+                    
+                        <Link to="/addevent" className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition flex items-center"><Edit className="w-4 h-4 mr-1" /> Edit Event</Link>
                     </div>
                 </div>
             </div>

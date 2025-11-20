@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import AddEvent from './pages/AddEvent';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path='/analytics' element={<Analytics/>}></Route>
         <Route path="/profile" element={<Profile />} />
         <Route path="/registrations" element={<MyRegistrations />} />
+        <Route path='/addevent' element={<AddEvent/>}></Route>
         <Route path="/events" element={<Events />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
