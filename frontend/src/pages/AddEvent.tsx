@@ -1,9 +1,11 @@
 import axios from 'axios'
 import { Calendar, DollarSign, FileText, MapPin, PlusCircle, Users } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useLocation} from 'react-router'
 
 const AddEvent = () => {
 
+    //form
     const [title, setTitle] = useState('')
     const [date, setDate] = useState('')
     const [time, setTime] = useState('');
@@ -13,10 +15,24 @@ const AddEvent = () => {
     const [category, setCategory] = useState('')
     const [description, setDescription] = useState('')
 
+    //thong bao
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    //nhan tham so tu url
+    const {...event} = useLocation().state || {};
+    useEffect(() => {
+        if (event) {
+            setTitle(event.title || '');
+            setDate(event.date ? new Date(event.date).toISOString().split('T')[0] : '');
+            setTime(event.date ? new Date(event.date).toISOString().split('T')[1].substring(0, 5) : '');
+            setLocation(event.location || '');
+            setAttendees(event.expectedAttendees || '');
+            setPrice(event.price || '');
+            setDescription(event.description || '');
+        }
+    }, [event]);
 
     function isValidDateDMY(dateStr: string) {
         const [day, month, year] = dateStr.split('/').map(Number);

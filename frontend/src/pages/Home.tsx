@@ -117,7 +117,7 @@ const Home: React.FC = () => {
                             title="My Registrations"
                             description="Manage your event registrations and tickets."
                             buttonText="View Registrations"
-                            to="/registrations"
+                            to="/addevent"
                         />
                         {/* 3. Find Events -> /events (Đã làm file Events.tsx) */}
                         <QuickAccessCard

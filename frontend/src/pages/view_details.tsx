@@ -1,39 +1,28 @@
 import React from 'react';
 import { Clock, MapPin, Calendar as CalendarIcon, User, Tag, Share2, Heart, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+
 
 // Dữ liệu giả định cho một sự kiện
-interface EventDetailData {
-    id: number;
-    category: string;
-    title: string;
-    date: string;
-    time: string;
-    location: string;
-    organizer: string;
-    fee: string;
-    description: string;
-    isRegistered: boolean;
-}
-
-const eventData: EventDetailData = {
-    id: 1,
-    category: 'Arts & Culture',
-    title: 'Annual Spring Concert',
-    date: 'Tuesday, April 15, 2026',
-    time: '7:00 PM - 9:00 PM',
-    location: 'University Auditorium, Main Campus',
-    organizer: 'Music Department',
-    fee: 'Free (Registration Required)',
-    description: 'Join us for a magnificent night of music and entertainment featuring the university orchestra and choir. This event showcases classical and contemporary pieces, promising a memorable experience for all attendees. Early registration is encouraged due to limited seating.',
-    isRegistered: true, 
-};
+// interface EventDetailData {
+//     id: number;
+//     category: string;
+//     title: string;
+//     date: string;
+//     time: string;
+//     location: string;
+//     organizer: string;
+//     fee: string;
+//     description: string;
+//     isRegistered: boolean;
+// }
 
 
 const ViewDetails: React.FC = () => {
+
+    //nhan du lieu tu url
+    const {...event} = useLocation().state || {};
     
-    // Sử dụng dữ liệu giả định
-    const event = eventData;
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -94,11 +83,11 @@ const ViewDetails: React.FC = () => {
                             <div className="mt-8 pt-4 border-t border-gray-100 space-y-3">
                                 <p className="flex items-center text-sm text-gray-600">
                                     <User className="w-4 h-4 mr-3" />
-                                    Organizer: <span className="font-medium ml-1 text-gray-800">{event.organizer}</span>
+                                    Organizer: <span className="font-medium ml-1 text-gray-800">CALL API DE LAY TEN ORGANIZER</span>
                                 </p>
                                 <p className="flex items-center text-sm text-gray-600">
                                     <Tag className="w-4 h-4 mr-3" />
-                                    Fee: <span className="font-medium ml-1 text-gray-800">{event.fee}</span>
+                                    Fee: <span className="font-medium ml-1 text-gray-800">{event.price}</span>
                                 </p>
                             </div>
 
@@ -109,7 +98,8 @@ const ViewDetails: React.FC = () => {
                             <div className="sticky top-20 bg-gray-50 border border-gray-300 rounded-lg p-6 shadow-md">
                                 <h3 className="text-xl font-bold mb-4 text-gray-900">Get Your Ticket</h3>
                                 
-                                {event.isRegistered ? (
+                                {/* Neu dki thi sinh ticket roi check xem ticket co null k */}
+                                {false ? (
                                     <>
                                         <p className="text-green-600 font-semibold mb-3">You are already registered!</p>
                                         <button className="w-full py-3 text-white bg-green-600 rounded-lg opacity-80 cursor-not-allowed">
