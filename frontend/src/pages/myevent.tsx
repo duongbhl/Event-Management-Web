@@ -85,9 +85,9 @@ export const RegisteredEventCard: React.FC<{ event: EventData }> = ({ event }) =
                     </div>
                     {/* Actions */}
                     <div className="flex space-x-3">
-                        <Button onClick={() => viewDetailsHandle()} className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition">View Details</Button>
-                        <button className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition">Add to Calendar</button>
-                        <button className="px-5 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition">Cancel Registration</button>
+                        <Button onClick={() => viewDetailsHandle()} className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition cursor-pointer">View Details</Button>
+                        <button className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition cursor-pointer">Add to Calendar</button>
+                        <button className="px-5 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition cursor-pointer">Cancel Registration</button>
                     </div>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { Calendar, DollarSign, FileText, MapPin, PlusCircle, Users } from 'lucide-react'
+import { Calendar, ChevronLeft, DollarSign, FileText,MapPin, PlusCircle,Users } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import { useLocation} from 'react-router'
+import { Link, useLocation} from 'react-router'
 
 const AddEvent = () => {
 
@@ -21,7 +21,7 @@ const AddEvent = () => {
     const [error, setError] = useState<string | null>(null);
 
     //nhan tham so tu url
-    const {...event} = useLocation().state || {};
+    const { ...event } = useLocation().state || {};
     useEffect(() => {
         if (event) {
             setTitle(event.title || '');
@@ -86,9 +86,19 @@ const AddEvent = () => {
     }
     return (
         <>
+            {/* --- HEADER: Back Button & Actions --- */}
+
             <div>
                 <div className="min-h-screen w-full relative bg-linear-to-b flex flex-col items-center pt-24 pb-20 px-4">
+                    <div className="flex justify-between items-center mb-6">
+                        {useLocation().state !== null && (
+                            <Link to="/myevent" className="text-orange-600 hover:text-orange-800 flex items-center text-sm font-medium">
+                                <ChevronLeft className="w-4 h-4 mr-1" /> Back to MyEvents
+                            </Link>
+                        )}
+                        
 
+                    </div>
 
                     <form
                         onSubmit={handleSubmit}

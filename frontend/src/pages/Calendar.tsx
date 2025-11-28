@@ -1,7 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react'; // Đã xóa CalendarIcon
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+
 
 // Định nghĩa kiểu dữ liệu cho sự kiện
 interface EventItemProps {
@@ -142,7 +141,6 @@ const Calendar: React.FC = () => {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };
