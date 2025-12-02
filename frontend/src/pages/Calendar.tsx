@@ -1,121 +1,228 @@
-import React from 'react';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react'; // Đã xóa CalendarIcon
+import React, { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { EventDataProp } from "@/components/Interfaces/EventDataProp";
+import { useNavigate } from "react-router";
 
 
-// Định nghĩa kiểu dữ liệu cho sự kiện
-interface EventItemProps {
-    month: string;
-    day: number;
-    time: string;
-    title: string;
-    location: string;
+/* ============================================================
+    2. Bộ chọn tháng/năm (Dropdown)
+============================================================ */
+interface MonthYearPickerProps {
+    currentMonth: number;
+    currentYear: number;
+    onChange: (month: number, year: number) => void;
 }
 
-// --- Component cho mỗi Sự kiện sắp tới ---
-const EventItem: React.FC<EventItemProps> = ({ month, day, time, title, location }) => (
-    <div className="flex p-3 border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer">
-        {/* Cột Ngày (Đã sửa flex-shrink-0 thành shrink-0) */}
-        <div className="shrink-0 text-center w-12 mr-4">
-            <div className="text-xs font-medium uppercase text-orange-500">{month}</div>
-            <div className="text-xl font-bold text-gray-800">{day}</div>
-        </div>
-        
-        {/* Cột Chi tiết Sự kiện (Đã sửa flex-grow thành grow) */}
-        <div className="grow">
-            <p className="font-semibold text-gray-800 leading-snug">{title}</p>
-            <p className="text-xs text-gray-500 mt-1">
-                <span className="font-medium mr-2">{time}</span>
-                <span className="inline-flex items-center">
-                    <MapPin className="w-3 h-3 mr-1" />{location}
-                </span>
-            </p>
-        </div>
-    </div>
-);
+export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
+    currentMonth,
+    currentYear,
+    onChange,
+}) => {
+    const [open, setOpen] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
-// --- Component Danh sách Sự kiện sắp tới (Cột bên phải) ---
-const UpcomingEventsList: React.FC = () => {
-    const events: EventItemProps[] = [
-        { month: 'Mar', day: 25, time: '10:00 AM', title: 'Career Fair', location: 'Student Center' },
-        { month: 'Mar', day: 28, time: '2:00 PM', title: 'Tech Workshop: AI Fundamentals', location: 'Engineering Building, Room 305' },
-        { month: 'Apr', day: 2, time: '9:00 AM', title: 'Basketball Tournament', location: 'University Sports Complex' },
-        { month: 'Apr', day: 5, time: '11:00 AM', title: 'Student Club Fair', location: 'Main Quad' },
-        { month: 'Apr', day: 10, time: '1:00 PM', title: 'Research Symposium', location: 'Science Center' },
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const years = Array.from({ length: 15 }, (_, i) => 2020 + i);
+
+    const handleSelectMonth = (m: number) => {
+        onChange(m, currentYear);
+        setOpen(false);
+    };
+
+    const handleSelectYear = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        onChange(currentMonth, Number(e.target.value));
+    };
+
+    // Click outside → đóng menu
+    useEffect(() => {
+        const listener = (e: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", listener);
+        return () => document.removeEventListener("mousedown", listener);
+    }, []);
+
+    return (
+        <div className="relative" ref={wrapperRef}>
+            <button
+                onClick={() => setOpen(!open)}
+                className="px-3 py-2 border rounded-md bg-white shadow-sm hover:bg-gray-50"
+            >
+                {months[currentMonth]} {currentYear}
+            </button>
+
+            {open && (
+                <div className="absolute z-30 bg-white shadow-xl border rounded-lg p-4 mt-2 w-64">
+
+                    {/* Năm */}
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="text-sm font-medium text-gray-600">Year</span>
+                        <select
+                            value={currentYear}
+                            onChange={handleSelectYear}
+                            className="border px-2 py-1 rounded-md"
+                        >
+                            {years.map((y) => (
+                                <option key={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <hr className="my-3" />
+
+                    {/* Lưới tháng */}
+                    <div className="grid grid-cols-3 gap-2">
+                        {months.map((m, i) => (
+                            <button
+                                key={i}
+                                onClick={() => handleSelectMonth(i)}
+                                className={`py-2 rounded-md border text-sm hover:bg-gray-100 transition
+                                    ${i === currentMonth ? "bg-orange-600 text-white border-orange-600" : "border-gray-300"}
+                                `}
+                            >
+                                {m}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+/* ============================================================
+    3. Lịch chính (Calendar Grid)
+============================================================ */
+export const CalendarGrid: React.FC<{ events: EventDataProp[] }> = ({ events }) => {
+    
+
+    const today = new Date();
+    const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+    const [currentYear, setCurrentYear] = useState(today.getFullYear());
+
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
     ];
+
+    // Ngày trong tháng
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+
+    // Lấp ô trống + ngày thực
+    const calendarDays = [
+        ...Array(firstDayIndex).fill(null),
+        ...Array.from({ length: daysInMonth }, (_, i) => i + 1)
+    ];
+
+    // Chuyển tháng
+    const nextMonth = () => {
+        if (currentMonth === 11) {
+            setCurrentMonth(0);
+            setCurrentYear(currentYear + 1);
+        } else setCurrentMonth(currentMonth + 1);
+    };
+
+    const prevMonth = () => {
+        if (currentMonth === 0) {
+            setCurrentMonth(11);
+            setCurrentYear(currentYear - 1);
+        } else setCurrentMonth(currentMonth - 1);
+    };
+
+    // Gom event theo ngày
+    const eventByDay: Record<number, EventDataProp[]> = {};
+    events.forEach(ev => {
+        const d = new Date(ev.date);
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+            const day = d.getDate();
+            if (!eventByDay[day]) eventByDay[day] = [];
+            eventByDay[day].push(ev);
+        }
+    });
+
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    //dieu huong
+    const navigate = useNavigate();
+    const viewDetailsHandle = (event:EventDataProp) => {
+        navigate(`/view-details/${event._id}}`, { state: { ...event } })
+
+    }
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Upcoming Events</h2>
-            <div className="overflow-y-auto max-h-[600px]">
-                {events.map((event, index) => (
-                    <EventItem key={index} {...event} />
-                ))}
-            </div>
-            <div className="mt-4 pt-3 border-t border-gray-100 text-center">
-                <button className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition">
-                    View All Events
-                </button>
-            </div>
-        </div>
-    );
-};
 
-// --- Component Lịch chính (Cột bên trái) ---
-const CalendarGrid: React.FC = () => {
-    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    // Dữ liệu giả định cho tháng 11/2025
-    const daysInMonth = [
-        null, null, null, null, null, null, 1, 
-        2, 3, 4, 5, 6, 7, 8, 
-        9, 10, 11, 12, 13, 14, 15,
-        16, 17, 18, 19, 20, 21, 22,
-        23, 24, 25, 26, 27, 28, 29, 30
-    ];
-
-    return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-md flex flex-col p-4">
-            {/* Header Lịch (Tháng và Dropdown) */}
+            {/* HEADER */}
             <div className="flex justify-between items-center mb-4">
+
+                <MonthYearPicker
+                    currentMonth={currentMonth}
+                    currentYear={currentYear}
+                    onChange={(m, y) => {
+                        setCurrentMonth(m);
+                        setCurrentYear(y);
+                    }}
+                />
+
                 <div className="flex items-center space-x-2">
-                    <button className="p-1 rounded-full text-gray-600 hover:bg-gray-100">
+                    <button onClick={prevMonth} className="p-1 rounded-full hover:bg-gray-100">
                         <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <span className="text-xl font-semibold text-gray-800">
-                        Tháng 11 2025
+
+                    <span className="text-xl font-semibold">
+                        {monthNames[currentMonth]} {currentYear}
                     </span>
-                    <button className="p-1 rounded-full text-gray-600 hover:bg-gray-100">
+
+                    <button onClick={nextMonth} className="p-1 rounded-full hover:bg-gray-100">
                         <ChevronRight className="w-5 h-5" />
                     </button>
                 </div>
-                
-                {/* Dropdown (Month / Week) */}
-                <div className="relative">
-                    <select className="appearance-none block w-full bg-white border border-gray-300 py-2 pl-3 pr-10 text-sm rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500">
-                        <option>Month</option>
-                        <option>Week</option>
-                        <option>Day</option>
-                    </select>
-                </div>
             </div>
 
-            {/* Header Thứ */}
+            {/* Days of week */}
             <div className="grid grid-cols-7 border-t border-gray-200">
-                {daysOfWeek.map((day, index) => (
-                    <div key={index} className="text-sm font-medium text-center text-gray-500 p-2 border-r border-b border-gray-200 last:border-r-0">
-                        {day}
+                {daysOfWeek.map((d) => (
+                    <div key={d} className="text-sm font-medium text-center text-gray-500 p-2 border-r border-b last:border-r-0">
+                        {d}
                     </div>
                 ))}
             </div>
 
-            {/* Lưới Ngày (Đã sửa flex-grow thành grow) */}
-            <div className="grid grid-cols-7 grow">
-                {daysInMonth.map((day, index) => (
-                    <div 
-                        key={index} 
-                        className={`min-h-[100px] border-r border-b border-gray-200 p-2 text-sm last:border-r-0 
-                            ${day ? 'text-gray-900 bg-white' : 'bg-gray-50 text-gray-400'}`}
+            {/* Calendar days */}
+            <div className="grid grid-cols-7">
+                {calendarDays.map((day, idx) => (
+                    <div
+                        key={idx}
+                        
+                        className={`min-h-[120px] border-r border-b p-2 text-sm
+                          ${day ? "bg-white" : "bg-gray-50 text-gray-300"}
+                        `}
                     >
                         {day}
+
+                        {/* HIỂN THỊ SỰ KIỆN */}
+                        {day && eventByDay[day] && (
+                            <div className="mt-2 space-y-1">
+
+                                {eventByDay[day].map(ev => (
+                                    <div
+                                        key={ev._id}
+                                        onClick={()=>viewDetailsHandle(ev)}
+                                        className="text-xs bg-gray-100 border border-gray-300 px-2 py-1 rounded-md
+                                                   hover:bg-gray-200 cursor-pointer whitespace-nowrap overflow-hidden"
+                                    >
+                                        <span className="font-medium">{ev.time}</span>{" "}
+                                        {ev.title}
+                                    </div>
+                                ))}
+
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -123,24 +230,27 @@ const CalendarGrid: React.FC = () => {
     );
 };
 
+/* ============================================================
+    4. Màn hình Calendar chính + DỮ LIỆU MẪU
+============================================================ */
 
-// --- Màn hình Calendar.tsx chính ---
 const Calendar: React.FC = () => {
+
+    // 🔥 DỮ LIỆU MẪU GIỐNG SCHOOLER
+    const sampleEvents: EventDataProp[] = [
+        { _id: '11', title: "日本語7", date: "2025-12-02", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+        { _id: '22', title: "ITSS in Japanese(1)", date: "2025-12-04", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+        { _id: '32', title: "日本語7", date: "2025-12-09", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+        { _id: '43', title: "日本語7", date: "2025-12-16", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+        { _id: '53', title: "ITSS in Japanese(1)", date: "2025-12-12", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+        { _id: '63', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+        { _id: '72', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+
+    ];
+
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            
-            <main className="container mx-auto p-4 sm:p-6 lg:p-8 grow">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Cột 1 & 2: Lịch */}
-                    <div className="lg:col-span-2">
-                        <CalendarGrid />
-                    </div>
-                    {/* Cột 3: Danh sách Sự kiện sắp tới */}
-                    <div className="lg:col-span-1">
-                        <UpcomingEventsList />
-                    </div>
-                </div>
-            </main>
+        <div className="min-h-screen bg-gray-50 p-6">
+            <CalendarGrid events={sampleEvents} />
         </div>
     );
 };

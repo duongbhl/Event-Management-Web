@@ -34,16 +34,7 @@ const AddEvent = () => {
         }
     }, [event]);
 
-    function isValidDateDMY(dateStr: string) {
-        const [day, month, year] = dateStr.split('/').map(Number);
-        const date = new Date(year, month - 1, day);
 
-        return (
-            date.getFullYear() === year &&
-            date.getMonth() + 1 === month &&
-            date.getDate() === day
-        );
-    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

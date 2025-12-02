@@ -1,8 +1,9 @@
-import { Clock, MapPin, Calendar as CalendarIcon, Edit, Settings } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+
+import { CreatedEventCard, type CreatedEventData } from '@/components/Cards/CreatedEventCard';
+import { PastEventCard, type PastEventData } from '@/components/Cards/PastEventCard';
+import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
 import React from 'react';
-import type EventData from '@/components/EventData_interface';
-import { Button } from '@/components/ui/button';
+
 
 // Định nghĩa kiểu dữ liệu cho sự kiện
 
@@ -11,14 +12,6 @@ interface MyEventTabsProps {
     activeTab: 'registered' | 'past' | 'created';
     onTabChange: (tab: 'registered' | 'past' | 'created') => void;
 }
-
-// Interfaces cho các tab khác
-interface PastEventData extends EventData {
-    isAttended: boolean;
-    hasSubmittedFeedback: boolean;
-}
-
-interface CreatedEventData extends EventData { }
 
 
 const MyEventTabs: React.FC<MyEventTabsProps> = ({ activeTab, onTabChange }) => {
@@ -47,190 +40,13 @@ const MyEventTabs: React.FC<MyEventTabsProps> = ({ activeTab, onTabChange }) => 
     );
 };
 
-// --- 1. Registered Event Card ---
-export const RegisteredEventCard: React.FC<{ event: EventData }> = ({ event }) => {
-    const navigate = useNavigate();
-    const viewDetailsHandle = () => {
-        navigate(`/view-details/${event._id}`, { state: { ...event } })
-
-    }
-    return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden">
-            <div className="flex">
-                <div className="w-1/4 bg-gray-100 flex items-center justify-center">
-                    <div className="text-gray-400 p-16">
-
-
-                        [Image of Placeholder]
-
-                    </div>
-                </div>
-                {/* Event Details */}
-                <div className="w-3/4 p-6">
-                    <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white bg-gray-800 rounded-full mb-3">
-                        {event.category}
-                    </span>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{event.title}</h3>
-                    <p className="text-gray-600 mb-4">{event.description}</p>
-                    {/* Date, Time, Location */}
-                    <div className="space-y-2 text-sm mb-4 text-gray-700">
-                        <div className="flex items-center"><CalendarIcon className="w-4 h-4 mr-2 text-gray-500" /><span>{event.date}</span></div>
-                        <div className="flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-500" /><span>{event.time}</span></div>
-                        <div className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-gray-500" /><span>{event.location}</span></div>
-                    </div>
-                    {/* Ticket Code */}
-                    <div className="border-t border-b border-gray-200 py-3 mb-5">
-                        <p className="text-sm font-medium text-gray-800">Ticket Code</p>
-                        <p className="text-lg font-semibold text-gray-900">KHI MUA VE SE SINH MA TICKET O DAY</p>
-                    </div>
-                    {/* Actions */}
-                    <div className="flex space-x-3">
-                        <Button onClick={() => viewDetailsHandle()} className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition cursor-pointer">View Details</Button>
-                        <button className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition cursor-pointer">Add to Calendar</button>
-                        <button className="px-5 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition cursor-pointer">Cancel Registration</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-};
-
-// --- 2. Past Event Card ---
-export const PastEventCard: React.FC<{ event: PastEventData }> = ({ event }) => {
-   //dieu huong
-   const navigate = useNavigate();
-    const viewDetailsHandle = () => {
-         navigate(`/view-details/${event._id}`, { state: { ...event } })
-    }
-
-    return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden relative">
-            <div className="flex">
-                {/* Trạng thái Attended */}
-                <div className="w-1/4 bg-gray-100 flex flex-col items-center justify-center p-4">
-                    <div className="text-gray-400 p-16">
-
-                    </div>
-                    {event.isAttended && (
-                        <div className="flex items-center text-green-600 font-semibold mt-4">
-                            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                            Attended
-                        </div>
-                    )}
-                </div>
-
-                {/* Event Details */}
-                <div className="w-3/4 p-6">
-                    <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white bg-gray-800 rounded-full mb-3">
-                        {event.category}
-                    </span>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{event.title}</h3>
-                    <p className="text-gray-600 mb-4">{event.description}</p>
-                    {/* Date, Time, Location */}
-                    <div className="space-y-2 text-sm mb-4 text-gray-700">
-                        <div className="flex items-center"><CalendarIcon className="w-4 h-4 mr-2 text-gray-500" /><span>{event.date}</span></div>
-                        <div className="flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-500" /><span>{event.time}</span></div>
-                        <div className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-gray-500" /><span>{event.location}</span></div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-3 mt-4">
-                        {/* LOGIC MỚI: Dựa vào trạng thái feedback để hiển thị nút */}
-                        {event.hasSubmittedFeedback ? (
-                            <Link
-                                to={`/feedback-view/${event._id}`} // Dẫn đến trang xem Feedback đã tạo
-                                className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
-                            >
-                                View Feedback
-                            </Link>
-                        ) : (
-                            <Link to={`/feedback`} className="px-5 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition">
-                                Submit Feedback
-                            </Link>
-                        )}
-                        <Button onClick={()=>viewDetailsHandle()} className="px-5 py-2 text-sm font-medium bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition cursor-pointer">
-                            View Details
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// --- 3. Created Event Card ---
-export const CreatedEventCard: React.FC<{ event: CreatedEventData }> = ({ event }) => {
-    //dieu huong
-    const navigate = useNavigate();
-    const editEventHandle = () => {
-        navigate(`/addevent/${event._id}`, { state: { ...event } })
-
-    }
-
-
-    //hien so luong dang ky va ti le dang ky
-    const progress = Math.round((event.attendees / event.expectedAttendees) * 100);
-    const isFull = event.attendees === event.expectedAttendees;
-
-    return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden relative">
-            {/* Status Badge */}
-            <div className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full ${event.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                {event.status}
-            </div>
-
-            <div className="flex">
-                <div className="w-1/4 bg-gray-100 flex items-center justify-center">
-                    <div className="text-gray-400 p-16">
-
-                    </div>
-                </div>
-
-                <div className="w-3/4 p-6">
-                    <span className="inline-block px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white bg-gray-800 rounded-full mb-3">
-                        {event.category}
-                    </span>
-
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{event.title}</h3>
-                    <p className="text-gray-600 mb-4">{event.description}</p>
-
-                    {/* Date, Time, Location */}
-                    <div className="space-y-2 text-sm mb-4 text-gray-700">
-                        <div className="flex items-center"><CalendarIcon className="w-4 h-4 mr-2 text-gray-500" /><span>{event.date}</span></div>
-                        <div className="flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-500" /><span>{event.time}</span></div>
-                        <div className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-gray-500" /><span>{event.location}</span></div>
-                    </div>
-
-                    {/* Registration Status */}
-                    <div className="pt-3 mb-5">
-                        <p className="text-sm font-medium text-gray-800 mb-2">Registration Status</p>
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-600 whitespace-nowrap">{event.attendees} / {event.expectedAttendees} registered</span>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                <div className="bg-orange-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
-                            </div>
-                            <span className={`text-xs font-medium whitespace-nowrap ${isFull ? 'text-red-500' : 'text-gray-600'}`}>{progress}% full</span>
-                        </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-3">
-                        <button className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition flex items-center cursor-pointer"><Settings className="w-4 h-4 mr-1" /> Manage Event</button>
-
-                        <Button onClick={() => editEventHandle()} className="px-5 py-2 text-sm font-medium bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition flex items-center cursor-pointer"><Edit className="w-4 h-4 mr-1" /> Edit Event</Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 // --- Màn hình MyEvent.tsx chính ---
 const MyEvents: React.FC = () => {
     const [activeTab, setActiveTab] = React.useState<'registered' | 'past' | 'created'>('registered');
 
     // Dữ liệu giả định
-    const registeredEvents: EventData[] = [
+    const registeredEvents: PastEventData[] = [
         {
             _id: '1',
             title: 'Annual Spring Concert',
@@ -243,6 +59,8 @@ const MyEvents: React.FC = () => {
             description: 'Join us for a night of music and entertainment featuring the university orchestra and choir.',
             status: 'approved',
             category: 'Arts & Culture',
+            isAttended:true,
+            hasSubmittedFeedback:false
 
         },
     ];

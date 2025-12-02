@@ -1,4 +1,4 @@
-export default interface EventData {
+export interface EventDataProp {
     _id: string;
     title: string;
     date: string;

@@ -10,6 +10,7 @@ const ViewDetails: React.FC = () => {
     const { ...event } = useLocation().state || {};
     const navigate = useNavigate();
 
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <main className="container mx-auto p-4 sm:p-6 lg:p-8 grow">
@@ -85,7 +86,7 @@ const ViewDetails: React.FC = () => {
                                 <h3 className="text-xl font-bold mb-4 text-gray-900">Get Your Ticket</h3>
 
                                 {/* Neu dki thi sinh ticket roi check xem ticket co null k */}
-                                {false ? (
+                                {event.isAttended ? (
                                     <>
                                         <p className="text-green-600 font-semibold mb-3">You are already registered!</p>
                                         <button className="w-full py-3 text-white bg-green-600 rounded-lg opacity-80 cursor-not-allowed">
@@ -100,7 +101,7 @@ const ViewDetails: React.FC = () => {
                                         <p className="text-gray-700 mb-4">Click below to register for this event.</p>
                                         <button
                                             // Link to the registration page (e.g., register_event.tsx)
-                                            onClick={() => alert('Navigate to Registration Form')}
+                                            onClick={() => {}}
                                             className="w-full py-3 text-lg font-bold text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition cursor-pointer"
                                         >
                                             Register Now
