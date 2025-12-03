@@ -17,15 +17,41 @@ export function isValidDateDMY(dateStr: string) {
   );
 }
 
-// Helper to extract dayNum & dayAbbr from date string
-export const parseDateInfo = (dateStr: string) => {
-  const parts = dateStr.split(', ')[1]?.split(' ');
-  if (!parts) return { dayNum: '', dayAbbr: '' };
-  return { dayNum: parts[1], dayAbbr: dateStr.split(',')[0] };
-}
 
+
+//tach date ra month day year
 export const formatDate = (dateStr: String) => {
   const parts = dateStr.split('/');
-  if(!parts) return {month:'', day:''};
-  return{month: parts[0], day: parts[1]}; 
+  if(!parts) return {month:'', day:'', year:''};
+  return{month: parts[0], day: parts[1], year: parts[2]}; 
 }
+
+
+// xu li filter upcoming, this day, this week cua su kien
+export const isWithinRange = (eventDate: Date, filter: string) => {
+    const now = new Date();
+    const d = eventDate;
+
+    switch (filter) {
+        case 'Today':
+            return d.toDateString() === now.toDateString();
+
+        case 'Tomorrow': {
+            const tomorrow = new Date();
+            tomorrow.setDate(now.getDate() + 1);
+            return d.toDateString() === tomorrow.toDateString();
+        }
+
+        case 'This Week': {
+            const weekEnd = new Date();
+            weekEnd.setDate(now.getDate() + 7);
+            return d >= now && d <= weekEnd;
+        }
+
+        case 'This Month':
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+
+        default: // "Upcoming"
+            return d >= now;
+    }
+};

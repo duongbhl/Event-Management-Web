@@ -1,7 +1,8 @@
 
-import { CreatedEventCard, type CreatedEventData } from '@/components/Cards/CreatedEventCard';
-import { PastEventCard, type PastEventData } from '@/components/Cards/PastEventCard';
+import { CreatedEventCard} from '@/components/Cards/CreatedEventCard';
+import { PastEventCard } from '@/components/Cards/PastEventCard';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
+import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
 import React from 'react';
 
 
@@ -46,7 +47,7 @@ const MyEvents: React.FC = () => {
     const [activeTab, setActiveTab] = React.useState<'registered' | 'past' | 'created'>('registered');
 
     // Dữ liệu giả định
-    const registeredEvents: PastEventData[] = [
+    const registeredEvents: EventDataProp[] = [
         {
             _id: '1',
             title: 'Annual Spring Concert',
@@ -58,14 +59,14 @@ const MyEvents: React.FC = () => {
             price: 20,
             description: 'Join us for a night of music and entertainment featuring the university orchestra and choir.',
             status: 'approved',
-            category: 'Arts & Culture',
+            category: 'Agriculture',
             isAttended:true,
             hasSubmittedFeedback:false
 
         },
     ];
 
-    const pastEvents: PastEventData[] = [
+    const pastEvents: EventDataProp[] = [
         {
             _id: '3',
             title: 'Winter Music Festival',
@@ -77,12 +78,12 @@ const MyEvents: React.FC = () => {
             price: 15,
             description: 'A celebration of music featuring performance from various university ensembles.',
             status: 'approved',
-            category: 'Arts & Culture',
+            category: 'Arts & Science',
             isAttended: true,
             hasSubmittedFeedback: true, // Đặt là TRUE để test View Feedback, sửa thành false để test Submit Feedback
         }
     ];
-    const createdEvents: CreatedEventData[] = [
+    const createdEvents: EventDataProp[] = [
         {
             _id: '4',
             title: 'Student Club Meeting',
@@ -94,7 +95,7 @@ const MyEvents: React.FC = () => {
             price: 100,
             description: 'Weekly meeting of the Computer Science Club.',
             status: 'approved',
-            category: 'Academic',
+            category: 'Pharmacy'
 
         }
     ];

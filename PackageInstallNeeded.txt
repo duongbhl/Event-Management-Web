@@ -5,7 +5,6 @@ Backend:ExpressJS, NodeJS, MongoDB
 Bạn đã cài hết dưới đây cho mn rồi, chỉ cần vào folder frontend và backend rồi npm install là xong
 
 
-
 KHÔNG CẦN CÀI DƯỚI ĐÂY NỮA
 init -y(khơỉ tạo package.json)
 npm install express(express.js)

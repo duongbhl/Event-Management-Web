@@ -4,10 +4,10 @@ import type { EventDataProp } from "../Interfaces/EventDataProp";
 import { Button } from "../ui/button";
 
 
-export interface CreatedEventData extends EventDataProp { }
+
 
 // --- 3. Created Event Card ---
-export const CreatedEventCard: React.FC<{ event: CreatedEventData }> = ({ event }) => {
+export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
     //dieu huong
     const navigate = useNavigate();
     const editEventHandle = () => {

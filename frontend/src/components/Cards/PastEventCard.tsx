@@ -6,15 +6,9 @@ import { Button } from "../ui/button";
 
 
 
-// Interfaces cho các tab khác
-export interface PastEventData extends EventDataProp {
-    isAttended: boolean;
-    hasSubmittedFeedback: boolean;
-}
-
 
 // --- 2. Past Event Card ---
-export const PastEventCard: React.FC<{ event: PastEventData }> = ({ event }) => {
+export const PastEventCard: React.FC<{ event: EventDataProp}> = ({ event }) => {
    //dieu huong
    const navigate = useNavigate();
     const viewDetailsHandle = () => {

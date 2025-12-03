@@ -1,13 +1,14 @@
 import { CalendarIcon, Clock, MapPin } from "lucide-react";
 
-import { parseDateInfo } from "@/lib/utils";
+import { formatDate} from "@/lib/utils";
 import { useNavigate } from "react-router";
 import type { EventDataProp } from "../Interfaces/EventDataProp";
 import { Button } from "../ui/button";
 
 
+
 // --- Component Event Card (Grid View) ---
-export const EventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
+export const EventCard: React.FC<{ event: EventDataProp, variant?:String }> = ({ event, variant }) => {
     const navigate = useNavigate();
     const viewDetailsHandle = () => {
         navigate(`/view-details/${event._id}`, { state: { ...event } })
@@ -34,8 +35,8 @@ export const EventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
                         {/* Cột Ngày */}
                         <div className="text-center">
                             <CalendarIcon className="w-5 h-5 text-gray-700 mx-auto mb-0.5" />
-                            <div className="text-xs font-semibold text-gray-700 leading-none">{parseDateInfo(event.date).dayAbbr}</div>
-                            <div className="text-lg font-bold text-orange-600 leading-none">{parseDateInfo(event.date).dayNum}</div>
+                            <div className="text-xs font-semibold text-gray-700 leading-none">{formatDate(event.date).month}</div>
+                            <div className="text-lg font-bold text-orange-600 leading-none">{formatDate(event.date).day}</div>
                         </div>
                     </div>
                 </div>

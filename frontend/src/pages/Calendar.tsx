@@ -238,13 +238,13 @@ const Calendar: React.FC = () => {
 
     // 🔥 DỮ LIỆU MẪU GIỐNG SCHOOLER
     const sampleEvents: EventDataProp[] = [
-        { _id: '11', title: "日本語7", date: "2025-12-02", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
-        { _id: '22', title: "ITSS in Japanese(1)", date: "2025-12-04", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
-        { _id: '32', title: "日本語7", date: "2025-12-09", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
-        { _id: '43', title: "日本語7", date: "2025-12-16", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
-        { _id: '53', title: "ITSS in Japanese(1)", date: "2025-12-12", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
-        { _id: '63', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
-        { _id: '72', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: ' ' },
+        { _id: '11', title: "日本語7", date: "2025-12-02", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Agriculture' },
+        { _id: '22', title: "ITSS in Japanese(1)", date: "2025-12-04", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Allied Health Sciences' },
+        { _id: '32', title: "日本語7", date: "2025-12-09", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Business' },
+        { _id: '43', title: "日本語7", date: "2025-12-16", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Engineering' },
+        { _id: '53', title: "ITSS in Japanese(1)", date: "2025-12-12", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Hotel Management' },
+        { _id: '63', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Physiotherapy' },
+        { _id: '72', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Business' },
 
     ];
 

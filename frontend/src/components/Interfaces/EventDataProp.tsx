@@ -9,5 +9,7 @@ export interface EventDataProp {
     price:number;
     description: string;
     status: 'pending'|'approved'|'rejected';
-    category: string;
+    category: 'Arts & Science' |'Engineering'| 'Agriculture' |'Pharmacy'|'Physiotherapy'|'Allied Health Sciences'|'Hotel Management'| 'Business'
+    isAttended?: boolean;
+    hasSubmittedFeedback?: boolean;
 }
