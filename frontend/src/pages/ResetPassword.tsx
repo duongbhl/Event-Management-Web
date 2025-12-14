@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, ArrowLeft, CheckCircle, Eye, EyeOff } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Lock, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 
 const ResetPassword: React.FC = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const [token, setToken] = useState<string | null>(null);
+    const { token } = useParams<{ token: string }>();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -16,16 +15,12 @@ const ResetPassword: React.FC = () => {
     const [success, setSuccess] = useState(false);
     const [countdown, setCountdown] = useState(5);
 
-    // Check for token in URL on mount
+    // Check for token on mount
     useEffect(() => {
-        const tokenFromUrl = searchParams.get('token');
-        
-        if (!tokenFromUrl) {
+        if (!token) {
             setError('Invalid or missing reset token. Please request a new password reset link.');
-        } else {
-            setToken(tokenFromUrl);
         }
-    }, [searchParams]);
+    }, [token]);
 
     // Countdown for auto-redirect after success
     useEffect(() => {
@@ -83,19 +78,16 @@ const ResetPassword: React.FC = () => {
         setError(null);
 
         try {
-            // API call to reset password
-            const response = await axios.post('/api/reset-password', {
-                token: token,
-                new_password: newPassword,
+            const response = await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, {
+                newPassword: newPassword,
             });
 
-            if (response.data.success) {
+            if (response.data.message) {
                 setSuccess(true);
             }
         } catch (err: any) {
             console.error('Error resetting password:', err);
             const errorMessage = err.response?.data?.message || 
-                                err.response?.data?.error || 
                                 'An error occurred. The reset link may be invalid or expired.';
             setError(errorMessage);
         } finally {
@@ -111,7 +103,6 @@ const ResetPassword: React.FC = () => {
                     
                     {!success ? (
                         <>
-                            {/* Header */}
                             <div className="text-center mb-8">
                                 <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
                                     Reset Password
@@ -122,7 +113,6 @@ const ResetPassword: React.FC = () => {
                             </div>
 
                             {!token ? (
-                                /* Invalid Token State */
                                 <div className="text-center">
                                     <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
                                         <p className="text-sm font-medium">
@@ -139,7 +129,6 @@ const ResetPassword: React.FC = () => {
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     
-                                    {/* Error Alert */}
                                     {error && (
                                         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start gap-2">
                                             <svg className="w-5 h-5 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -149,7 +138,6 @@ const ResetPassword: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* New Password Field */}
                                     <div>
                                         <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
                                             New Password <span className="text-red-500">*</span>
@@ -174,36 +162,32 @@ const ResetPassword: React.FC = () => {
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                             >
-                                                {showPassword ? (
-                                                    <EyeOff className="w-5 h-5" />
-                                                ) : (
-                                                    <Eye className="w-5 h-5" />
-                                                )}
+                                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                             </button>
                                         </div>
                                         
-                                        {/* Password Strength Indicator */}
                                         {newPassword && (
                                             <div className="mt-2">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                                        <div 
-                                                            className={`h-full ${passwordStrength.color} transition-all duration-300`}
-                                                            style={{ width: passwordStrength.width }}
-                                                        ></div>
-                                                    </div>
-                                                    <span className="text-xs font-medium text-gray-600">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-xs text-gray-600">Password strength:</span>
+                                                    <span className={`text-xs font-medium ${
+                                                        passwordStrength.strength === 'Weak' ? 'text-red-600' :
+                                                        passwordStrength.strength === 'Medium' ? 'text-yellow-600' :
+                                                        'text-green-600'
+                                                    }`}>
                                                         {passwordStrength.strength}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-gray-500">
-                                                    Must be at least 6 characters
-                                                </p>
+                                                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                                                        style={{ width: passwordStrength.width }}
+                                                    />
+                                                </div>
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Confirm Password Field */}
                                     <div>
                                         <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                                             Confirm Password <span className="text-red-500">*</span>
@@ -228,11 +212,7 @@ const ResetPassword: React.FC = () => {
                                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                             >
-                                                {showConfirmPassword ? (
-                                                    <EyeOff className="w-5 h-5" />
-                                                ) : (
-                                                    <Eye className="w-5 h-5" />
-                                                )}
+                                                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                             </button>
                                         </div>
                                         {confirmPassword && newPassword === confirmPassword && (
@@ -243,7 +223,6 @@ const ResetPassword: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {/* Submit Button */}
                                     <button
                                         type="submit"
                                         disabled={isLoading}
@@ -255,7 +234,7 @@ const ResetPassword: React.FC = () => {
                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                 </svg>
-                                                <span>Resetting Password...</span>
+                                                <span>Resetting...</span>
                                             </>
                                         ) : (
                                             <>
@@ -267,7 +246,6 @@ const ResetPassword: React.FC = () => {
                                 </form>
                             )}
 
-                            {/* Back to Login Link */}
                             <div className="text-center mt-6">
                                 <Link 
                                     to="/login" 
@@ -279,7 +257,6 @@ const ResetPassword: React.FC = () => {
                             </div>
                         </>
                     ) : (
-                        /* Success State */
                         <div className="text-center">
                             <div className="flex justify-center mb-4">
                                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
@@ -318,4 +295,3 @@ const ResetPassword: React.FC = () => {
 }
 
 export default ResetPassword;
-

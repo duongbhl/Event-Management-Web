@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Mail, IdCard, ArrowLeft, CheckCircle, Send } from 'lucide-react';
+import { Mail, CheckCircle, ArrowLeft, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const ForgotPassword: React.FC = () => {
-    const [identifierType, setIdentifierType] = useState<'email' | 'roll'>('email');
-    const [identifier, setIdentifier] = useState('');
+    const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -13,21 +12,14 @@ const ForgotPassword: React.FC = () => {
     const validateForm = () => {
         setError(null);
 
-        if (!identifier.trim()) {
-            setError(`Please enter your ${identifierType === 'email' ? 'email address' : 'roll number'}`);
+        if (!email.trim()) {
+            setError('Please enter your email address');
             return false;
         }
 
-        if (identifierType === 'email') {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
-                setError('Please enter a valid email address');
-                return false;
-            }
-        } else {
-            if (!/^tu\d{13}$/.test(identifier)) {
-                setError('Roll number should be in format: tu followed by 13 digits');
-                return false;
-            }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError('Please enter a valid email address');
+            return false;
         }
 
         return true;
@@ -44,19 +36,16 @@ const ForgotPassword: React.FC = () => {
         setError(null);
 
         try {
-            // API call to request password reset
-            const response = await axios.post('/api/forgot-password', {
-                identifier_type: identifierType === 'email' ? 'email' : 'roll_number',
-                identifier: identifier,
+            const response = await axios.post('http://localhost:5000/api/auth/forgot-password', {
+                email: email,
             });
 
-            if (response.data.success) {
+            if (response.data.message) {
                 setSuccess(true);
             }
         } catch (err: any) {
             console.error('Error requesting password reset:', err);
             const errorMessage = err.response?.data?.message || 
-                                err.response?.data?.error || 
                                 'An error occurred. Please try again later.';
             setError(errorMessage);
         } finally {
@@ -64,23 +53,10 @@ const ForgotPassword: React.FC = () => {
         }
     };
 
-    const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setIdentifier(e.target.value);
-        setError(null);
-    };
-
-    const handleTypeChange = (type: 'email' | 'roll') => {
-        setIdentifierType(type);
-        setIdentifier('');
-        setError(null);
-    };
-
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <main className="flex flex-col items-center justify-center p-4 grow">
-                
                 <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl shadow-lg p-8 sm:p-10">
-                    
                     {!success ? (
                         <>
                             {/* Header */}
@@ -89,7 +65,7 @@ const ForgotPassword: React.FC = () => {
                                     Forgot Password?
                                 </h1>
                                 <p className="text-gray-500 text-sm">
-                                    No worries! Enter your details and we'll send you reset instructions.
+                                    Enter your email and we'll send you reset instructions.
                                 </p>
                             </div>
 
@@ -105,65 +81,26 @@ const ForgotPassword: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Identifier Type Toggle */}
+                                {/* Email Input Field */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                                        Select Identification Method
-                                    </label>
-                                    <div className="flex gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTypeChange('email')}
-                                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg border-2 transition ${
-                                                identifierType === 'email'
-                                                    ? 'bg-orange-50 border-orange-500 text-orange-700'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                                            }`}
-                                        >
-                                            <Mail className="w-4 h-4 inline mr-2" />
-                                            Email
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTypeChange('roll')}
-                                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg border-2 transition ${
-                                                identifierType === 'roll'
-                                                    ? 'bg-orange-50 border-orange-500 text-orange-700'
-                                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                                            }`}
-                                        >
-                                            <IdCard className="w-4 h-4 inline mr-2" />
-                                            Roll Number
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Identifier Input Field */}
-                                <div>
-                                    <label htmlFor="identifier" className="block text-sm font-medium text-gray-700 mb-1">
-                                        {identifierType === 'email' ? 'Email Address' : 'Roll Number'}
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Email Address
                                     </label>
                                     <div className="relative">
-                                        {identifierType === 'email' ? (
-                                            <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                                        ) : (
-                                            <IdCard className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                                        )}
+                                        <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                                         <input
-                                            id="identifier"
-                                            name="identifier"
-                                            type={identifierType === 'email' ? 'email' : 'text'}
+                                            id="email"
+                                            name="email"
+                                            type="email"
                                             required
-                                            value={identifier}
-                                            onChange={handleIdentifierChange}
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
-                                            placeholder={identifierType === 'email' ? 'your.email@example.com' : 'e.g. tu6241103111042'}
+                                            placeholder="your.email@example.com"
                                         />
                                     </div>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        {identifierType === 'email' 
-                                            ? 'We will send reset instructions to this email'
-                                            : 'Enter your student roll number (tu + 13 digits)'}
+                                        We will send reset instructions to this email
                                     </p>
                                 </div>
 
@@ -211,26 +148,17 @@ const ForgotPassword: React.FC = () => {
                             </div>
                             
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                Check Your {identifierType === 'email' ? 'Email' : 'Inbox'}
+                                Check Your Email
                             </h2>
                             
                             <p className="text-gray-600 mb-6">
-                                {identifierType === 'email' ? (
-                                    <>
-                                        We've sent password reset instructions to <br />
-                                        <span className="font-semibold text-gray-900">{identifier}</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        We've sent password reset instructions to the email associated with <br />
-                                        <span className="font-semibold text-gray-900">{identifier}</span>
-                                    </>
-                                )}
+                                We've sent password reset instructions to <br />
+                                <span className="font-semibold text-gray-900">{email}</span>
                             </p>
 
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                                 <p className="text-sm text-blue-800">
-                                    <strong>Note:</strong> The reset link will expire in 30 minutes. 
+                                    <strong>Note:</strong> The reset link will expire in 15 minutes. 
                                     If you don't see the email, check your spam folder.
                                 </p>
                             </div>
@@ -246,7 +174,7 @@ const ForgotPassword: React.FC = () => {
                             <button
                                 onClick={() => {
                                     setSuccess(false);
-                                    setIdentifier('');
+                                    setEmail('');
                                 }}
                                 className="mt-4 text-sm text-gray-600 hover:text-gray-900 underline"
                             >
