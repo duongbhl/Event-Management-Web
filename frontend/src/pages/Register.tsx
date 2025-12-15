@@ -2,9 +2,11 @@ import React from 'react';
 import { Mail, Lock, User} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useToast } from '@/hooks/useToast';
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
+    const toast = useToast();
     const [formData, setFormData] = React.useState({
         fullName: '',
         rollNumber: '',
@@ -86,8 +88,10 @@ const Register: React.FC = () => {
             });
 
             if (response.data.message === "User registered successfully") {
-                alert('Registration successful! You can now log in.');
-                navigate('/login');
+                toast.success('Registration successful! Redirecting to login...');
+                setTimeout(() => {
+                    navigate('/login');
+                }, 1500);
             }
         } catch (err: any) {
             console.error('Error registering user:', err);
@@ -101,6 +105,7 @@ const Register: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
+            <toast.ToastComponent />
             <main className="flex flex-col items-center justify-center p-4 grow">
                 
                 <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-xl shadow-lg p-8 sm:p-10">

@@ -2,9 +2,11 @@ import React from 'react';
 import { Mail, Lock, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useToast } from '@/hooks/useToast';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
+    const toast = useToast();
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [isLoading, setIsLoading] = React.useState(false);
@@ -29,14 +31,16 @@ const Login: React.FC = () => {
                 // Thêm dòng này để trigger storage event
                 window.dispatchEvent(new Event('storage'));
 
-                alert('Login successful!');
+                toast.success('Login successful! Redirecting...');
                 
-                // Redirect based on role
-                if (response.data.data.user.role === 'admin') {
-                    navigate('/admin/dashboard');
-                } else {
-                    navigate('/events');
-                }
+                // Redirect based on role (slight delay to show toast)
+                setTimeout(() => {
+                    if (response.data.data.user.role === 'admin') {
+                        navigate('/admin');
+                    } else {
+                        navigate('/events');
+                    }
+                }, 1000);
             }
         } catch (err: any) {
             console.error('Error logging in:', err);
@@ -50,6 +54,7 @@ const Login: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
+            <toast.ToastComponent />
             <main className="flex flex-col items-center justify-center p-4 grow">
                 
                 <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl shadow-lg p-8 sm:p-10">

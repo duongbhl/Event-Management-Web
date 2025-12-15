@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, MapPin, Calendar as CalendarIcon, Ticket, User, Edit, Trash2, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/useToast';
 
 // Giả định dữ liệu chi tiết đăng ký
 interface RegistrationData {
@@ -73,9 +74,34 @@ const RegistrationDetail: React.FC<{ data: RegistrationData }> = ({ data }) => (
 
 
 const MyRegistrations: React.FC = () => {
+    const navigate = useNavigate();
+    const toast = useToast();
+    
+    // Authentication state
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+    
     // State để quản lý form chỉnh sửa
-    const [isEditing, setIsEditing] = React.useState(false);
-    const [formData, setFormData] = React.useState<RegistrationData>(registrationData);
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState<RegistrationData>(registrationData);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+    // Check authentication on mount
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        if (!token || !user) {
+            navigate('/login', { replace: true });
+            return;
+        }
+        
+        setIsAuthenticated(true);
+    }, [navigate]);
+
+    // Don't render until auth check is complete
+    if (isAuthenticated === null) {
+        return null;
+    }
     
     // Hàm xử lý thay đổi form (Form Handler)
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -85,16 +111,15 @@ const MyRegistrations: React.FC = () => {
 
     // Hàm lưu (Save)
     const handleSave = () => {
-        alert('Đã lưu chỉnh sửa đăng ký!');
+        toast.success('Registration updated successfully!');
         setIsEditing(false);
     };
     
     // Hàm hủy (Cancel)
-    const handleCancel = () => {
-        if (window.confirm('Bạn có chắc chắn muốn hủy đăng ký này?')) {
-            alert('Đăng ký đã bị hủy.');
-            // Logic điều hướng/xóa sẽ được thêm ở đây
-        }
+    const handleCancelRegistration = () => {
+        setShowCancelConfirm(false);
+        toast.info('Registration has been cancelled.');
+        // Logic điều hướng/xóa sẽ được thêm ở đây
     };
     
     const handleEditToggle = () => setIsEditing(prev => !prev);
@@ -102,6 +127,32 @@ const MyRegistrations: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
+            <toast.ToastComponent />
+            
+            {/* Cancel Confirmation Modal */}
+            {showCancelConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Cancel Registration?</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to cancel this registration? This action cannot be undone.</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowCancelConfirm(false)}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition"
+                            >
+                                Keep Registration
+                            </button>
+                            <button
+                                onClick={handleCancelRegistration}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition"
+                            >
+                                Yes, Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <main className="container mx-auto p-4 sm:p-6 lg:p-8 grow">
 
                 {/* Back Button */}
@@ -199,7 +250,7 @@ const MyRegistrations: React.FC = () => {
                                 </button>
                                 
                                 <button 
-                                    onClick={handleCancel}
+                                    onClick={() => setShowCancelConfirm(true)}
                                     className="w-full py-3 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 font-bold transition flex items-center justify-center space-x-2"
                                 >
                                     <Trash2 className="w-5 h-5" />

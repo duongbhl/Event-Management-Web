@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, IdCard, Save, Loader2, ArrowLeft, LogOut, Key } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useToast } from '@/hooks/useToast';
 
 interface UserData {
     id: string;
@@ -14,8 +15,10 @@ interface UserData {
 
 const Profile: React.FC = () => {
     const navigate = useNavigate();
+    const toast = useToast();
     const [user, setUser] = useState<UserData | null>(null);
     const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     
     const [profileData, setProfileData] = useState({
         fullName: '',
@@ -204,13 +207,28 @@ const Profile: React.FC = () => {
         try {
             if (!user) return;
 
-            // API call to change password
-            const response = await axios.put(`/api/profile/${user.id}/password`, {
-                current_password: passwordData.currentPassword,
-                new_password: passwordData.newPassword,
-            });
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('You must be logged in to change password');
+                navigate('/login');
+                return;
+            }
 
-            if (response.data.success) {
+            // API call to change password
+            const response = await axios.put(
+                'http://localhost:5000/api/auth/change-password',
+                {
+                    currentPassword: passwordData.currentPassword,
+                    newPassword: passwordData.newPassword,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.message === "Password changed successfully") {
                 // Reset password form
                 setPasswordData({
                     currentPassword: '',
@@ -233,10 +251,13 @@ const Profile: React.FC = () => {
     };
 
     const handleLogout = () => {
-        if (confirm('Are you sure you want to log out?')) {
-            localStorage.removeItem('user');
+        setShowLogoutConfirm(false);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        toast.success('Logged out successfully!');
+        setTimeout(() => {
             navigate('/login');
-        }
+        }, 1000);
     };
 
     if (!user) {
@@ -245,6 +266,32 @@ const Profile: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
+            <toast.ToastComponent />
+            
+            {/* Logout Confirmation Modal */}
+            {showLogoutConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Log Out?</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to log out of your account?</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowLogoutConfirm(false)}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition"
+                            >
+                                Yes, Log Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <main className="container mx-auto p-4 sm:p-6 lg:p-8 grow">
                 
                 {/* Page Header */}
@@ -284,7 +331,7 @@ const Profile: React.FC = () => {
 
                             {/* Logout Button */}
                             <button
-                                onClick={handleLogout}
+                                onClick={() => setShowLogoutConfirm(true)}
                                 className="w-full px-5 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition flex items-center justify-center"
                             >
                                 <LogOut className="w-4 h-4 mr-2" /> 
