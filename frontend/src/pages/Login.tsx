@@ -1,15 +1,51 @@
 import React from 'react';
 import { Mail, Lock, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Login: React.FC = () => {
+    const navigate = useNavigate();
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        alert(`Logging in with: ${email} and password: ${password}`);
-        // Logic đăng nhập sẽ được thêm vào đây sau
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post('http://localhost:5000/api/auth/login', {
+                email,
+                password
+            });
+
+            if (response.data.message === "Login successful") {
+                // Lưu token vào localStorage
+                localStorage.setItem('token', response.data.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.data.user));
+
+                // Thêm dòng này để trigger storage event
+                window.dispatchEvent(new Event('storage'));
+
+                alert('Login successful!');
+                
+                // Redirect based on role
+                if (response.data.data.user.role === 'admin') {
+                    navigate('/admin/dashboard');
+                } else {
+                    navigate('/events');
+                }
+            }
+        } catch (err: any) {
+            console.error('Error logging in:', err);
+            const errorMessage = err.response?.data?.message || 
+                                'An error occurred during login';
+            setError(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -27,7 +63,17 @@ const Login: React.FC = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         
-                        {/* 1. Email/Username Field */}
+                        {/* Error Alert */}
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start gap-2">
+                                <svg className="w-5 h-5 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-sm">{error}</span>
+                            </div>
+                        )}
+
+                        {/* Email Field */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                                 Email Address
@@ -37,7 +83,7 @@ const Login: React.FC = () => {
                                 <input
                                     id="email"
                                     name="email"
-                                    type="text"
+                                    type="email"
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -47,7 +93,7 @@ const Login: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* 2. Password Field */}
+                        {/* Password Field */}
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                                 Password
@@ -74,13 +120,26 @@ const Login: React.FC = () => {
                             </Link>
                         </div>
                         
-                        {/* 3. Submit Button */}
+                        {/* Submit Button */}
                         <button
                             type="submit"
-                            className="w-full py-3 text-lg font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition flex items-center justify-center space-x-2"
+                            disabled={isLoading}
+                            className="w-full py-3 text-lg font-bold text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <User className="w-5 h-5" />
-                            <span>Sign In</span>
+                            {isLoading ? (
+                                <>
+                                    <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Signing In...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <User className="w-5 h-5" />
+                                    <span>Sign In</span>
+                                </>
+                            )}
                         </button>
                     </form>
 

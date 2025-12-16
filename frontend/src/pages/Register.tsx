@@ -78,22 +78,20 @@ const Register: React.FC = () => {
 
         try {
             // API call to register user
-            const response = await axios.post('/api/register', {
-                full_name: formData.fullName,
-                email: formData.email || null,
-                roll_number: formData.rollNumber || null,
+            const response = await axios.post('http://localhost:5000/api/auth/register', {
+                username: formData.fullName,
+                email: formData.email,
                 password: formData.password,
-                role: formData.role,
+                confirmPassword: formData.confirmPassword
             });
 
-            if (response.data.success) {
+            if (response.data.message === "User registered successfully") {
                 alert('Registration successful! You can now log in.');
                 navigate('/login');
             }
         } catch (err: any) {
             console.error('Error registering user:', err);
             const errorMessage = err.response?.data?.message || 
-                                err.response?.data?.error || 
                                 'An error occurred during registration';
             setError(errorMessage);
         } finally {
