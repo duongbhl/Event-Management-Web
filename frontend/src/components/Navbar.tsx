@@ -99,7 +99,7 @@ const Navbar: React.FC = () => {
                             >
                                 <User className="w-5 h-5 text-gray-700" />
                                 <span className="text-sm font-medium text-gray-700">
-                                    {user?.username || user?.email}
+                                    {user?.full_name || user?.email}
                                 </span>
                             </button>
 
