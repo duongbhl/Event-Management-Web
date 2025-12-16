@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Calendar from './pages/Calendar';
 import MyEvents from './pages/myevent';
@@ -16,12 +16,16 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AddEvent from './pages/AddEvent';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
-function App() {
+// Layout wrapper to conditionally show Navbar/Footer
+function AppLayout() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
-
-    <BrowserRouter>
-    <Navbar />
+    <>
+      {!isAdminRoute && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} /> 
         <Route path="/calendar" element={<Calendar />} />
@@ -39,8 +43,18 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
-      <Footer/>
+      {!isAdminRoute && <Footer/>}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppLayout />
     </BrowserRouter>
   );
 }

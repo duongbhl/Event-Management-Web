@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, User, LogOut, Menu, X } from 'lucide-react'; 
+import { Search, User, LogOut, Menu, X, LayoutDashboard } from 'lucide-react'; 
 import { Link, useNavigate } from 'react-router-dom';
 
 interface NavItemProps {
@@ -105,7 +105,18 @@ const Navbar: React.FC = () => {
 
                             {/* Dropdown Menu */}
                             {showUserMenu && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+                                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+                                    {/* Admin Dashboard Link - Only for admin users */}
+                                    {user?.role === 'admin' && (
+                                        <Link
+                                            to="/admin"
+                                            onClick={() => setShowUserMenu(false)}
+                                            className="flex items-center px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 font-medium"
+                                        >
+                                            <LayoutDashboard className="w-4 h-4 mr-2" />
+                                            Admin Dashboard
+                                        </Link>
+                                    )}
                                     <Link
                                         to="/profile"
                                         onClick={() => setShowUserMenu(false)}
