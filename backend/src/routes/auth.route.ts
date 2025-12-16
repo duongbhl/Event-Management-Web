@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { changePassword, forgotPassword, getUserProfile, login, register, resetPassword } from "../controllers/auth.controller";
+import { changePassword, forgotPassword, getUserProfile, login, register, resetPassword, updateProfile } from "../controllers/auth.controller";
 import User from "../models/user.model";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail";
@@ -31,6 +31,9 @@ authRouter.post("/reset-password/:token", resetPassword);
 
 //chnage password route
 authRouter.put("/change-password", changePassword);
+
+//update profile route
+authRouter.put("/profile", updateProfile);
 
 //get user info route
 authRouter.get("/me", getUserProfile);

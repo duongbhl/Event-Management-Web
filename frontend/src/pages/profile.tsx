@@ -8,7 +8,7 @@ interface UserData {
     id: string;
     full_name: string;
     email: string;
-    roll_number: string;
+    roll_number?: string;
     role: string;
     avatarUrl?: string;
 }
@@ -48,47 +48,19 @@ const Profile: React.FC = () => {
         try {
             const userData = JSON.parse(storedUser);
             setUser(userData);
-            loadUserData(userData.id);
+            // Pre-fill profile data from localStorage immediately
+            setProfileData({
+                fullName: userData.full_name || '',
+                email: userData.email || '',
+                rollNumber: userData.roll_number || '',
+            });
+            setIsLoading(false);
         } catch (error) {
             console.error('Error parsing user data:', error);
             navigate('/login');
         }
     }, [navigate]);
 
-    const loadUserData = async (userId: string) => {
-        setIsLoading(true);
-        try {
-            // API call to load user data
-            const response = await axios.get(`/api/profile/${userId}`);
-            
-            if (response.data.success) {
-                const data = response.data.user;
-                setProfileData({
-                    fullName: data.full_name || '',
-                    email: data.email || '',
-                    rollNumber: data.roll_number || '',
-                });
-                
-                // Update local user object
-                setUser({
-                    ...data,
-                    avatarUrl: data.avatar_url,
-                });
-            }
-        } catch (error: any) {
-            console.error('Error loading user data:', error);
-            // If API fails, use data from localStorage
-            if (user) {
-                setProfileData({
-                    fullName: user.full_name || '',
-                    email: user.email || '',
-                    rollNumber: user.roll_number || '',
-                });
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -107,23 +79,15 @@ const Profile: React.FC = () => {
     const validateProfileForm = () => {
         setError(null);
 
-        if (!profileData.fullName) {
-            setError('Full name is required');
+        // Name validation - letters and spaces only
+        if (profileData.fullName && !/^[a-zA-Z\s]+$/.test(profileData.fullName)) {
+            setError('Full name should contain letters only');
             return false;
         }
 
-        if (!profileData.email && !profileData.rollNumber) {
-            setError('Either email or roll number is required');
-            return false;
-        }
-
-        if (profileData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileData.email)) {
-            setError('Please enter a valid email address');
-            return false;
-        }
-
-        if (profileData.rollNumber && !/^tu\d{13}$/.test(profileData.rollNumber)) {
-            setError('Roll number should be in format: tu followed by 13 digits');
+        // Student/Employee ID validation - alphanumeric only (no special chars)
+        if (profileData.rollNumber && !/^[a-zA-Z0-9]+$/.test(profileData.rollNumber)) {
+            setError('Student/Employee ID should contain letters and numbers only');
             return false;
         }
 
@@ -163,23 +127,39 @@ const Profile: React.FC = () => {
         try {
             if (!user) return;
 
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('You must be logged in to update profile');
+                navigate('/login');
+                return;
+            }
+
             // API call to update profile
-            const response = await axios.put(`/api/profile/${user.id}`, {
-                full_name: profileData.fullName,
-                email: profileData.email || null,
-                roll_number: profileData.rollNumber || null,
-            });
+            const response = await axios.put(
+                'http://localhost:5000/api/auth/profile',
+                {
+                    full_name: profileData.fullName,
+                    roll_number: profileData.rollNumber || null,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
             if (response.data.success) {
-                // Update local storage
+                // Update local storage with new data
                 const updatedUser = {
                     ...user,
                     full_name: profileData.fullName,
-                    email: profileData.email,
                     roll_number: profileData.rollNumber,
                 };
                 setUser(updatedUser);
                 localStorage.setItem('user', JSON.stringify(updatedUser));
+                
+                // Trigger storage event for navbar to update
+                window.dispatchEvent(new Event('storage'));
 
                 setSuccessMessage('Profile updated successfully!');
                 setTimeout(() => setSuccessMessage(null), 3000);
@@ -422,7 +402,7 @@ const Profile: React.FC = () => {
                                                 {/* Full Name Field */}
                                                 <div>
                                                     <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Full Name <span className="text-red-500">*</span>
+                                                        Full Name
                                                     </label>
                                                     <div className="relative">
                                                         <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -438,10 +418,10 @@ const Profile: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* Email Field */}
+                                                {/* Email Field - Read only for internal org */}
                                                 <div>
                                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Email Address
+                                                        Email Address <span className="text-red-500">*</span>
                                                     </label>
                                                     <div className="relative">
                                                         <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -450,20 +430,18 @@ const Profile: React.FC = () => {
                                                             name="email"
                                                             type="email"
                                                             value={profileData.email}
-                                                            onChange={handleProfileChange}
-                                                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                                                            disabled
+                                                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                                                             placeholder="your.email@example.com"
                                                         />
                                                     </div>
-                                                    {user.role === 'admin' && (
-                                                        <p className="text-xs text-gray-500 mt-1">Required for administrators</p>
-                                                    )}
+                                                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                                                 </div>
 
-                                                {/* Roll Number Field */}
+                                                {/* Student/Employee ID Field */}
                                                 <div>
                                                     <label htmlFor="rollNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Roll Number
+                                                        Student/Employee ID
                                                     </label>
                                                     <div className="relative">
                                                         <IdCard className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -474,12 +452,10 @@ const Profile: React.FC = () => {
                                                             value={profileData.rollNumber}
                                                             onChange={handleProfileChange}
                                                             className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
-                                                            placeholder="e.g. tu6241103111042"
+                                                            placeholder="Your student or employee ID"
                                                         />
                                                     </div>
-                                                    {user.role === 'student' && (
-                                                        <p className="text-xs text-gray-500 mt-1">Required for students</p>
-                                                    )}
+                                                    <p className="text-xs text-gray-500 mt-1">Letters and numbers only</p>
                                                 </div>
 
                                                 {/* Save Button */}

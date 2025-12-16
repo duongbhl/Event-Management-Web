@@ -9,11 +9,9 @@ const Register: React.FC = () => {
     const toast = useToast();
     const [formData, setFormData] = React.useState({
         fullName: '',
-        rollNumber: '',
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'student',
     });
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -30,26 +28,14 @@ const Register: React.FC = () => {
         setError(null);
 
         // Check required fields
-        if (!formData.fullName || !formData.password || !formData.confirmPassword) {
+        if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
             setError('Please fill in all required fields');
             return false;
         }
 
-        // Check if either email or roll number is provided
-        if (!formData.email && !formData.rollNumber) {
-            setError('Please provide either an email or roll number');
-            return false;
-        }
-
-        // Validate email format if provided
-        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        // Validate email format
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             setError('Please enter a valid email address');
-            return false;
-        }
-
-        // Validate roll number format if provided
-        if (formData.rollNumber && !/^tu\d{13}$/.test(formData.rollNumber)) {
-            setError('Roll number should be in format: tu followed by 13 digits');
             return false;
         }
 
@@ -154,7 +140,7 @@ const Register: React.FC = () => {
                         {/* Email Field */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                Email Address
+                                Email Address <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -162,15 +148,13 @@ const Register: React.FC = () => {
                                     id="email"
                                     name="email"
                                     type="email"
+                                    required
                                     value={formData.email}
                                     onChange={handleChange}
                                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
                                     placeholder="your.email@example.com"
                                 />
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                                Required for administrators
-                            </p>
                         </div>
 
                         

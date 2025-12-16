@@ -50,7 +50,8 @@ export const login = async (req: Request, res: Response) => {
                     id: user._id,
                     email: user.email,
                     role: user.role,
-                    username: user.username
+                    full_name: user.username,  // Map username to full_name for frontend
+                    roll_number: user.roll_number || null
                 }
             }
         });
@@ -177,4 +178,51 @@ export const changePassword = async (req: Request, res: Response) => {
 
     }
 
+}
+
+export const updateProfile = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({ message: "No token provided" });
+        }
+        
+        const token = authHeader.split(" ")[1];
+        const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
+        const userId = decoded.id || decoded._id || decoded?.user?.id;
+        
+        const { full_name, roll_number } = req.body;
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Update username (full_name in frontend maps to username in backend)
+        if (full_name !== undefined) {
+            user.username = full_name;
+        }
+        
+        // Update roll_number
+        if (roll_number !== undefined) {
+            user.roll_number = roll_number;
+        }
+        
+        await user.save();
+        
+        res.status(200).json({ 
+            success: true,
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                full_name: user.username,
+                email: user.email,
+                role: user.role,
+                roll_number: user.roll_number || null
+            }
+        });
+    } catch (error) {
+        console.error("Error in updateProfile:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
 }
