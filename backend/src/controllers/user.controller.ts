@@ -1,20 +1,35 @@
 import { Request, Response } from "express";
 import Event from "../models/event.model";
 import Ticket from "../models/ticket.model";
+import { uploadToCloudinary } from '../middleware/upload.middleware';
 
 // --- EVENT CRUD ---
 export const createEvent = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const { title, date, location, expectedAttendees, price, description } = req.body;
+    const { title, date, time, location, expectedAttendees, price, description, category } = req.body;
+
+    let imageUrl: string | undefined = undefined;
+
+    // Nếu có file upload, upload lên Cloudinary
+    if (req.file) {
+      imageUrl = await uploadToCloudinary(
+        req.file.buffer,
+        'event-management/events',
+        [{ width: 1200, height: 630, crop: 'fill' }]
+      );
+    }
 
     const newEvent = await Event.create({
       title,
       date,
+      time,
       location,
       expectedAttendees,
       price,
       description,
+      category,
+      image: imageUrl,
       organizerId: userId,
       attendees: 0,
       status: "pending"
@@ -23,7 +38,7 @@ export const createEvent = async (req: any, res: Response) => {
     res.status(201).json({ message: "Event created, pending approval", data: newEvent });
   } catch (error) {
     console.error("Error in createEvent:", error);
-    res.status(500).json({ message: "Event creation failed" });
+    res.status(500).json({ message: "Event creation failed", error });
   }
 };
 
@@ -231,6 +246,28 @@ export const getTicketById = async (req: any, res: Response) => {
     res.status(200).json({ data: ticket });
   } catch (error) {
     console.error("Error in getTicketById:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const getMyTickets = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const tickets = await Ticket.find({ userId, status: "booked" })
+      .populate('eventId'); // Populate để lấy thông tin event
+    res.status(200).json({ data: tickets });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const getEventById = async (req: Request, res: Response) => {
+  try {
+    const event = await Event.findById(req.params.id)
+      .populate('organizerId', 'username email'); // Lấy thông tin organizer
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    res.status(200).json({ data: event });
+  } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }
 };

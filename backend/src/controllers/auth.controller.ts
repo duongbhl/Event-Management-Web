@@ -5,6 +5,7 @@ import { generateToken } from "../utils/generateToken";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail";
+import { uploadToCloudinary } from '../middleware/upload.middleware';
 
 
 export const register = async (req: Request, res: Response) => {
@@ -50,8 +51,9 @@ export const login = async (req: Request, res: Response) => {
                     id: user._id,
                     email: user.email,
                     role: user.role,
-                    full_name: user.username,  // Map username to full_name for frontend
-                    roll_number: user.roll_number || null
+                    full_name: user.username,
+                    roll_number: user.roll_number || null,
+                    avatar: user.avatar || null  // ✅ THÊM
                 }
             }
         });
@@ -218,7 +220,8 @@ export const updateProfile = async (req: Request, res: Response) => {
                 full_name: user.username,
                 email: user.email,
                 role: user.role,
-                roll_number: user.roll_number || null
+                roll_number: user.roll_number || null,
+                avatar: user.avatar || null
             }
         });
     } catch (error) {
@@ -226,3 +229,47 @@ export const updateProfile = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Server Error" });
     }
 }
+
+export const updateAvatar = async (req: any, res: Response) => {
+    try {
+        const userId = req.user.id;
+        
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Upload lên Cloudinary
+        const avatarUrl = await uploadToCloudinary(
+            req.file.buffer,
+            'event-management/avatars',
+            [{ width: 500, height: 500, crop: 'fill' }]
+        );
+        
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { avatar: avatarUrl },
+            { new: true }
+        ).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            message: "Avatar updated successfully",
+            data: {
+                avatar: user.avatar,
+                user: {
+                    id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    avatar: user.avatar,
+                    role: user.role
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Error in updateAvatar:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};

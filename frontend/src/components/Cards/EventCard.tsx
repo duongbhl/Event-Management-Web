@@ -18,11 +18,17 @@ export const EventCard: React.FC<{ event: EventDataProp, variant?:String }> = ({
     return (
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-full">
             {/* Image Placeholder */}
-            <div className="w-full h-40 bg-gray-100 flex items-center justify-center relative">
-                <div className="text-gray-400 p-16">
-
-                </div>
-                {/* Calendar Icon & Date */}
+            <div className="w-full h-40 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                {event.image ? (
+                    <img 
+                        src={event.image} 
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="text-gray-400 text-sm">No Image</div>
+                )}
+                {/* Calendar Icon & Date Overlay */}
                 <div className="absolute bottom-0 left-0 right-0 p-2 bg-white/70 backdrop-blur-sm">
                     <div className="flex justify-between items-end">
                         {/* Cột Chi tiết */}

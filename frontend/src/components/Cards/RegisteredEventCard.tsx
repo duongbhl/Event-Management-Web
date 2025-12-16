@@ -14,13 +14,16 @@ export const RegisteredEventCard: React.FC<{ event: EventDataProp}> = ({ event }
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden">
             <div className="flex">
-                <div className="w-1/4 bg-gray-100 flex items-center justify-center">
-                    <div className="text-gray-400 p-16">
-
-
-                        [Image of Placeholder]
-
-                    </div>
+                <div className="w-1/4 bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {event.image ? (
+                        <img 
+                            src={event.image} 
+                            alt={event.title}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="text-gray-400 text-sm">No Image</div>
+                    )}
                 </div>
                 {/* Event Details */}
                 <div className="w-3/4 p-6">

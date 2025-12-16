@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Lock, IdCard, Save, Loader2, ArrowLeft, LogOut, Key } from 'lucide-react';
+import { User, Mail, Lock, IdCard, Save, Loader2, ArrowLeft, LogOut, Key, Camera } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useToast } from '@/hooks/useToast';
@@ -10,7 +10,7 @@ interface UserData {
     email: string;
     roll_number?: string;
     role: string;
-    avatarUrl?: string;
+    avatar?: string;
 }
 
 const Profile: React.FC = () => {
@@ -36,6 +36,7 @@ const Profile: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
     // Check authentication and load user data
     useEffect(() => {
@@ -240,6 +241,57 @@ const Profile: React.FC = () => {
         }, 1000);
     };
 
+    // Hàm upload avatar
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate
+        if (!file.type.startsWith('image/')) {
+            setError('Please select an image file');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image size must be less than 5MB');
+            return;
+        }
+
+        setUploadingAvatar(true);
+        setError(null);
+
+        try {
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            const response = await axios.post(
+                'http://localhost:5000/api/auth/upload-avatar',
+                formData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+
+            if (response.data.message) {
+                // Update state và localStorage
+                const updatedUser = response.data.data.user;
+                setUser(updatedUser);
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                setSuccessMessage('Avatar updated successfully!');
+                setTimeout(() => setSuccessMessage(null), 3000);
+            }
+        } catch (err: any) {
+            console.error('Error uploading avatar:', err);
+            setError(err.response?.data?.message || 'Failed to upload avatar');
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
+
     if (!user) {
         return null; // Will redirect to login in useEffect
     }
@@ -292,12 +344,36 @@ const Profile: React.FC = () => {
                         <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-6 flex flex-col items-center">
                             
                             {/* Avatar */}
-                            <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center mb-4 overflow-hidden">
-                                {user.avatarUrl ? (
-                                    <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                    <User className="w-16 h-16 text-gray-500" />
-                                )}
+                            <div className="relative mb-4">
+                                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                    {user.avatar ? (
+                                        <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User className="w-16 h-16 text-gray-500" />
+                                    )}
+                                </div>
+                                
+                                {/* Upload button */}
+                                <label 
+                                    htmlFor="avatar-upload" 
+                                    className="absolute bottom-0 right-0 bg-orange-500 text-white p-2 rounded-full cursor-pointer hover:bg-orange-600 transition shadow-lg"
+                                >
+                                    {uploadingAvatar ? (
+                                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : (
+                                        <Camera className="w-5 h-5" />
+                                    )}
+                                </label>
+                                <input
+                                    id="avatar-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleAvatarUpload}
+                                    className="hidden"
+                                />
                             </div>
                             
                             {/* Name and Role */}

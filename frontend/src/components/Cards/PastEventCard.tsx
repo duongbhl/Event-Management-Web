@@ -19,12 +19,18 @@ export const PastEventCard: React.FC<{ event: EventDataProp}> = ({ event }) => {
         <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden relative">
             <div className="flex">
                 {/* Trạng thái Attended */}
-                <div className="w-1/4 bg-gray-100 flex flex-col items-center justify-center p-4">
-                    <div className="text-gray-400 p-16">
-
-                    </div>
+                <div className="w-1/4 bg-gray-100 flex flex-col items-center justify-center p-4 overflow-hidden relative">
+                    {event.image ? (
+                        <img 
+                            src={event.image} 
+                            alt={event.title}
+                            className="w-full h-full object-cover absolute inset-0"
+                        />
+                    ) : (
+                        <div className="text-gray-400 text-sm">No Image</div>
+                    )}
                     {event.isAttended && (
-                        <div className="flex items-center text-green-600 font-semibold mt-4">
+                        <div className="flex items-center text-green-600 font-semibold mt-4 relative z-10 bg-white/80 px-2 py-1 rounded">
                             <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                             Attended
                         </div>

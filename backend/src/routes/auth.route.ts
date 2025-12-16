@@ -1,9 +1,8 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { changePassword, forgotPassword, getUserProfile, login, register, resetPassword, updateProfile } from "../controllers/auth.controller";
-import User from "../models/user.model";
-import crypto from "crypto";
-import { sendEmail } from "../utils/sendEmail";
+import { changePassword, forgotPassword, getUserProfile, login, register, resetPassword, updateAvatar } from "../controllers/auth.controller";
+import { protect } from "../middleware/auth.middleware";
+import { uploadAvatar } from "../middleware/upload.middleware";
 
 
 export const authRouter = Router();
@@ -29,11 +28,11 @@ authRouter.post("/forgot-password", forgotPassword);
 //Reset password route
 authRouter.post("/reset-password/:token", resetPassword);
 
-//chnage password route
-authRouter.put("/change-password", changePassword);
+//Change password route
+authRouter.put("/change-password", protect, changePassword);
 
-//update profile route
-authRouter.put("/profile", updateProfile);
+// Get user info route
+authRouter.get("/me", protect, getUserProfile);
 
-//get user info route
-authRouter.get("/me", getUserProfile);
+// Upload avatar route
+authRouter.post("/upload-avatar", protect, uploadAvatar.single('avatar'), updateAvatar);

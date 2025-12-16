@@ -11,6 +11,7 @@ export interface IUser extends Document{
     updatedAt: Date;
     resetPasswordToken: String;
     resetPasswordExpires: Number;
+    avatar?: string;
 }
 
 const userSchema = new Schema<IUser>(
@@ -22,6 +23,7 @@ const userSchema = new Schema<IUser>(
         roll_number: { type: String },
         resetPasswordToken: { type: String },
         resetPasswordExpires: { type: Number },
+        avatar: { type: String }, // ✅ THÊM DÒNG NÀY
     },
     { timestamps: true }
 )

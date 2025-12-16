@@ -28,10 +28,16 @@ export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) 
             </div>
 
             <div className="flex">
-                <div className="w-1/4 bg-gray-100 flex items-center justify-center">
-                    <div className="text-gray-400 p-16">
-
-                    </div>
+                <div className="w-1/4 bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {event.image ? (
+                        <img 
+                            src={event.image} 
+                            alt={event.title}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="text-gray-400 text-sm">No Image</div>
+                    )}
                 </div>
 
                 <div className="w-3/4 p-6">

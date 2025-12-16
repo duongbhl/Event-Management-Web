@@ -13,8 +13,11 @@ import {
   getApprovedEventsNext3Months,
   getTotalAttendeesLastMonth,
   getTotalRevenueLastMonth,
+  getMyTickets,
+  getEventById,
 } from "../controllers/user.controller";
 import { protect } from "../middleware/auth.middleware";
+import { uploadEventImage } from "../middleware/upload.middleware";
 
 export const userRouter = Router();
 
@@ -23,7 +26,7 @@ export const userRouter = Router();
    =============================== */
 
 // 👉 Tạo mới sự kiện (chờ admin duyệt)
-userRouter.post("/event", protect, createEvent);//xong
+userRouter.post("/event", protect, uploadEventImage.single('image'), createEvent);//xong
 
 // 👉 Xem tất cả sự kiện do user hiện tại tổ chức
 userRouter.get("/events", protect, getAllEvent);//xong
@@ -54,6 +57,12 @@ userRouter.put("/tickets/:id/cancel", protect, cancelTicket);//xong
 
 // Xem chi tiết vé theo ID
 userRouter.get("/tickets/:id", protect, getTicketById);//xong
+
+// Lấy tickets của user
+userRouter.get("/my-tickets", protect, getMyTickets); 
+
+// Lấy chi tiết 1 event
+userRouter.get("/event/:id", protect, getEventById); 
 
 
 export default userRouter;

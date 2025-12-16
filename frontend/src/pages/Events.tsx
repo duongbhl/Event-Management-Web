@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, List, Grid } from 'lucide-react';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
 import type { FilterDropdownProp } from '@/components/Interfaces/FilterDropdownProp';
 import { EventCard } from '@/components/Cards/EventCard';
 import { isWithinRange } from '@/lib/utils';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
+import axios from 'axios';
 
 // ============= Dummy Data =================
 const categories = [
@@ -54,13 +55,34 @@ const Events: React.FC = () => {
     const [currentPage, setCurrentPage] = React.useState(1);
     const eventsPerPage = 6;
 
+    const [events, setEvents] = useState<EventDataProp[]>([]);
+    const [loading, setLoading] = useState(true);
+
     // Reset page when filters/search change
     React.useEffect(() => {
         setCurrentPage(1);
     }, [search, categoryFilter, upcomingFilter, typeFilter]);
 
+    // Fetch events from API
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await axios.get('http://localhost:5000/api/user/allEvents/approved', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setEvents(res.data.data);
+            } catch (error) {
+                console.error('Error fetching events:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEvents();
+    }, []);
+
     // 🔍 FILTER EVENTS
-    const filteredEvents = eventList.filter(event => {
+    const filteredEvents = events.filter(event => {
         const dateObj = new Date(event.date);
 
         const matchesSearch =

@@ -1,13 +1,20 @@
-
 import { CreatedEventCard} from '@/components/Cards/CreatedEventCard';
 import { PastEventCard } from '@/components/Cards/PastEventCard';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
-import React from 'react';
-
+import React, { useEffect } from 'react';
+import axios from 'axios';
 
 // Định nghĩa kiểu dữ liệu cho sự kiện
-
+interface TicketData {
+    _id: string;
+    userId: string;
+    eventId: EventDataProp;
+    quantity: number;
+    totalPrice: number;
+    status: 'booked' | 'cancelled' | 'nothing';
+    bookedAt: string;
+}
 
 interface MyEventTabsProps {
     activeTab: 'registered' | 'past' | 'created';
@@ -45,61 +52,61 @@ const MyEventTabs: React.FC<MyEventTabsProps> = ({ activeTab, onTabChange }) => 
 // --- Màn hình MyEvent.tsx chính ---
 const MyEvents: React.FC = () => {
     const [activeTab, setActiveTab] = React.useState<'registered' | 'past' | 'created'>('registered');
+    const [registeredEvents, setRegisteredEvents] = React.useState<EventDataProp[]>([]);
+    const [pastEvents, setPastEvents] = React.useState<EventDataProp[]>([]);
+    const [createdEvents, setCreatedEvents] = React.useState<EventDataProp[]>([]);
 
-    // Dữ liệu giả định
-    const registeredEvents: EventDataProp[] = [
-        {
-            _id: '1',
-            title: 'Annual Spring Concert',
-            date: 'Tuesday, April 15',
-            time: '7:00 PM',
-            location: 'University Auditorium',
-            attendees: 100,
-            expectedAttendees: 200,
-            price: 20,
-            description: 'Join us for a night of music and entertainment featuring the university orchestra and choir.',
-            status: 'approved',
-            category: 'Agriculture',
-            isAttended:true,
-            hasSubmittedFeedback:false
-
-        },
-    ];
-
-    const pastEvents: EventDataProp[] = [
-        {
-            _id: '3',
-            title: 'Winter Music Festival',
-            date: 'Monday, January 20',
-            time: '6:00 PM',
-            location: 'University Auditorium',
-            attendees: 80,
-            expectedAttendees: 150,
-            price: 15,
-            description: 'A celebration of music featuring performance from various university ensembles.',
-            status: 'approved',
-            category: 'Arts & Science',
-            isAttended: true,
-            hasSubmittedFeedback: true, // Đặt là TRUE để test View Feedback, sửa thành false để test Submit Feedback
-        }
-    ];
-    const createdEvents: EventDataProp[] = [
-        {
-            _id: '4',
-            title: 'Student Club Meeting',
-            date: 'Thursday, April 10',
-            time: '5:00 PM',
-            location: 'Student Center, Room 203',
-            attendees: 15,
-            expectedAttendees: 30,
-            price: 100,
-            description: 'Weekly meeting of the Computer Science Club.',
-            status: 'approved',
-            category: 'Pharmacy'
-
-        }
-    ];
-
+    useEffect(() => {
+        const fetchMyEvents = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Fetch created events
+                const createdRes = await axios.get('http://localhost:5000/api/user/events', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                // Fetch registered events (tickets)
+                const ticketsRes = await axios.get('http://localhost:5000/api/user/my-tickets', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                const now = new Date();
+                const allCreatedEvents: EventDataProp[] = createdRes.data.data || [];
+                const allTickets: TicketData[] = ticketsRes.data.data || [];
+                
+                // Registered events = upcoming events from tickets
+                const upcomingRegistered = allTickets
+                    .filter((t: TicketData) => t.eventId && new Date(t.eventId.date) >= now)
+                    .map((t: TicketData) => t.eventId);
+                
+                // Past events = past tickets + past created events
+                const pastTickets = allTickets
+                    .filter((t: TicketData) => t.eventId && new Date(t.eventId.date) < now)
+                    .map((t: TicketData) => ({
+                        ...t.eventId,
+                        isAttended: true,
+                        hasSubmittedFeedback: false
+                    }));
+                
+                const pastCreated = allCreatedEvents
+                    .filter((e: EventDataProp) => new Date(e.date) < now)
+                    .map((e: EventDataProp) => ({
+                        ...e,
+                        isAttended: false,
+                        hasSubmittedFeedback: false
+                    }));
+                
+                setRegisteredEvents(upcomingRegistered);
+                setPastEvents([...pastTickets, ...pastCreated]);
+                setCreatedEvents(allCreatedEvents);
+                
+            } catch (error) {
+                console.error('Error fetching events:', error);
+            }
+        };
+        fetchMyEvents();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">

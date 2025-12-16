@@ -1,10 +1,9 @@
 import axios from 'axios'
-import { Calendar, ChevronLeft, DollarSign, FileText,MapPin, PlusCircle,Users } from 'lucide-react'
+import { Calendar, ChevronLeft, DollarSign, FileText,MapPin, PlusCircle,Users, FileImage } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Link, useLocation} from 'react-router'
 
 const AddEvent = () => {
-
     //form
     const [title, setTitle] = useState('')
     const [date, setDate] = useState('')
@@ -20,75 +19,121 @@ const AddEvent = () => {
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    //state
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
     //nhan tham so tu url
-    const { ...event } = useLocation().state || {};
+    const locationState = useLocation().state;
+    
     useEffect(() => {
-        if (event) {
-            setTitle(event.title || '');
-            setDate(event.date ? new Date(event.date).toISOString().split('T')[0] : '');
-            setTime(event.date ? new Date(event.date).toISOString().split('T')[1].substring(0, 5) : '');
-            setLocation(event.location || '');
-            setAttendees(event.expectedAttendees || '');
-            setPrice(event.price || '');
-            setDescription(event.description || '');
+        // Chỉ set giá trị 1 lần khi component mount và có event
+        if (locationState?.title) {
+            setTitle(locationState.title || '');
+            setDate(locationState.date ? new Date(locationState.date).toISOString().split('T')[0] : '');
+            setTime(locationState.time || '');
+            setLocation(locationState.location || '');
+            setAttendees(locationState.expectedAttendees || '');
+            setPrice(locationState.price || '');
+            setCategory(locationState.category || '');
+            setDescription(locationState.description || '');
         }
-    }, [event]);
+    }, []);
 
+    //Hàm handle image
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
+        if (!file.type.startsWith('image/')) {
+            setError('Please select an image file');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            setError('Image size must be less than 10MB');
+            return;
+        }
+
+        setSelectedImage(file);
+        
+        // Preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setMessage(null);
         setError(null);
-        if (!title || !date || !location || !expectedAttendees || !price) {
-            setError("All fields must be typed");
+        if (!title || !date || !time || !location || !expectedAttendees || !price) {
+            setError("All required fields must be filled");
+            return;
         }
-        const eventDate = new Date(date);
-        const now = new Date()
 
-        if (eventDate.getDay() <= now.getDay() && eventDate.getMonth() <= now.getMonth() && eventDate.getFullYear() <= now.getFullYear()) {
-            setError("Choose another Day");
+        try {
+            setLoading(true);
+            const token = localStorage.getItem("token");
+            
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('date', date);
+            formData.append('time', time);
+            formData.append('location', location);
+            formData.append('expectedAttendees', expectedAttendees.toString());
+            formData.append('price', price.toString());
+            formData.append('description', description);
+            if (category) formData.append('category', category);
+            if (selectedImage) formData.append('image', selectedImage);
 
-        } else {
-            try {
-                setLoading(true);
-                const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-                const res = await axios.post("http://localhost:5000/api/user/event/", {
-                    title, date, location, expectedAttendees, price, description
-                }, {
+            const res = await axios.post(
+                "http://localhost:5000/api/user/event",
+                formData,
+                {
                     headers: {
                         Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
                     }
-                })
-
-                if (res.status === 201) {
-                    setMessage(res.data.message)
                 }
-                else setError(res.data.message)
+            );
 
-            } catch (error) {
-                console.log("ERROR");
-                setError("ERROR")
-            } finally {
-                setLoading(false)
+            if (res.status === 201) {
+                setMessage(res.data.message);
+                // Reset form
+                setTitle('');
+                setDate('');
+                setTime('');
+                setLocation('');
+                setAttendees('');
+                setPrice('');
+                setCategory('');
+                setDescription('');
+                setSelectedImage(null);
+                setImagePreview(null);
+            } else {
+                setError(res.data.message);
             }
+        } catch (error) {
+            console.log("ERROR", error);
+            setError("Failed to create event");
+        } finally {
+            setLoading(false);
         }
-
     }
+    
     return (
         <>
-            {/* --- HEADER: Back Button & Actions --- */}
-
             <div>
                 <div className="min-h-screen w-full relative bg-linear-to-b flex flex-col items-center pt-24 pb-20 px-4">
                     <div className="flex justify-between items-center mb-6">
-                        {useLocation().state !== null && (
+                        {locationState && (
                             <Link to="/myevent" className="text-orange-600 hover:text-orange-800 flex items-center text-sm font-medium">
                                 <ChevronLeft className="w-4 h-4 mr-1" /> Back to MyEvents
                             </Link>
                         )}
-                        
-
                     </div>
 
                     <form
@@ -104,6 +149,8 @@ const AddEvent = () => {
                                     <FileText size={16} /> <span className="block text-sm font-medium text-gray-700 mb-1 ">Event Title</span>
                                 </div>
                                 <input
+                                    name="title"
+                                    id="title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="Enter event title"
@@ -116,6 +163,8 @@ const AddEvent = () => {
                                     <Calendar size={16} /> <span className="block text-sm font-medium text-gray-700 mb-1">Date</span>
                                 </div>
                                 <input
+                                    name="date"
+                                    id="date"
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
                                     type="date"
@@ -129,6 +178,8 @@ const AddEvent = () => {
                                     <span className="block text-sm font-medium text-gray-700 mb-1">Time</span>
                                 </div>
                                 <input
+                                    name="time"
+                                    id="time"
                                     value={time}
                                     onChange={(e) => setTime(e.target.value)}
                                     type="time"
@@ -142,6 +193,8 @@ const AddEvent = () => {
                                     <MapPin size={16} /> <span className="block text-sm font-medium text-gray-700 mb-1">Location</span>
                                 </div>
                                 <input
+                                    name="location"
+                                    id="location"
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
                                     placeholder="Event location"
@@ -154,6 +207,8 @@ const AddEvent = () => {
                                     <Users size={16} /> <span className="block text-sm font-medium text-gray-700 mb-1">Expected Attendees</span>
                                 </div>
                                 <input
+                                    name="expectedAttendees"
+                                    id="expectedAttendees"
                                     value={expectedAttendees}
                                     onChange={(e) => setAttendees(e.target.value === '' ? '' : Number(e.target.value))}
                                     type="number"
@@ -168,6 +223,8 @@ const AddEvent = () => {
                                     <DollarSign size={16} /> <span className="block text-sm font-medium text-gray-700 mb-1">Price</span>
                                 </div>
                                 <input
+                                    name="price"
+                                    id="price"
                                     value={price}
                                     onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
                                     type="number"
@@ -183,6 +240,8 @@ const AddEvent = () => {
                                     <span className="block text-sm font-medium text-gray-700 mb-1">Category</span>
                                 </div>
                                 <select
+                                    name="category"
+                                    id="category"
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
                                     className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
@@ -205,12 +264,44 @@ const AddEvent = () => {
                                     <FileText size={16} /> <span className="block text-sm font-medium text-gray-700 mb-1">Description</span>
                                 </div>
                                 <textarea
+                                    name="description"
+                                    id="description"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     rows={6}
                                     placeholder="Write a short description..."
                                     className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 resize-none"
                                 />
+                            </label>
+
+                            {/* Event Image Upload */}
+                            <label className="block">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <FileImage size={16} />
+                                    <span className="block text-sm font-medium text-gray-700">Event Image</span>
+                                </div>
+                                
+                                {imagePreview && (
+                                    <div className="mb-3">
+                                        <img 
+                                            src={imagePreview} 
+                                            alt="Preview" 
+                                            className="w-full h-64 object-cover rounded-lg border border-gray-300" 
+                                        />
+                                    </div>
+                                )}
+                                
+                                <input
+                                    name="image"
+                                    id="image"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Recommended: 1200x630px, Max size: 10MB (JPG, PNG, GIF)
+                                </p>
                             </label>
 
                             {/* Messages */}
