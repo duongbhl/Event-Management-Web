@@ -1,4 +1,4 @@
-import { CreatedEventCard} from '@/components/Cards/CreatedEventCard';
+import { CreatedEventCard } from '@/components/Cards/CreatedEventCard';
 import { PastEventCard } from '@/components/Cards/PastEventCard';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
@@ -60,26 +60,26 @@ const MyEvents: React.FC = () => {
         const fetchMyEvents = async () => {
             try {
                 const token = localStorage.getItem('token');
-                
+
                 // Fetch created events
                 const createdRes = await axios.get('http://localhost:5000/api/user/events', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                
+
                 // Fetch registered events (tickets)
                 const ticketsRes = await axios.get('http://localhost:5000/api/user/my-tickets', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                
+
                 const now = new Date();
                 const allCreatedEvents: EventDataProp[] = createdRes.data.data || [];
                 const allTickets: TicketData[] = ticketsRes.data.data || [];
-                
+
                 // Registered events = upcoming events from tickets
                 const upcomingRegistered = allTickets
                     .filter((t: TicketData) => t.eventId && new Date(t.eventId.date) >= now)
                     .map((t: TicketData) => t.eventId);
-                
+
                 // Past events = past tickets + past created events
                 const pastTickets = allTickets
                     .filter((t: TicketData) => t.eventId && new Date(t.eventId.date) < now)
@@ -88,7 +88,7 @@ const MyEvents: React.FC = () => {
                         isAttended: true,
                         hasSubmittedFeedback: false
                     }));
-                
+
                 const pastCreated = allCreatedEvents
                     .filter((e: EventDataProp) => new Date(e.date) < now)
                     .map((e: EventDataProp) => ({
@@ -96,11 +96,11 @@ const MyEvents: React.FC = () => {
                         isAttended: false,
                         hasSubmittedFeedback: false
                     }));
-                
+
                 setRegisteredEvents(upcomingRegistered);
                 setPastEvents([...pastTickets, ...pastCreated]);
                 setCreatedEvents(allCreatedEvents);
-                
+
             } catch (error) {
                 console.error('Error fetching events:', error);
             }
@@ -118,31 +118,43 @@ const MyEvents: React.FC = () => {
 
                 {/* Nội dung Tab: REGISTERED */}
                 {activeTab === 'registered' && (
-                    <section>
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">Upcoming Registered Events</h2>
-                            <button className="text-sm font-medium text-orange-600 hover:text-orange-800">
-                                View All Registrations
-                            </button>
-                        </div>
-                        {registeredEvents.map(event => (<RegisteredEventCard key={event._id} event={event} />))}
-                    </section>
+                    registeredEvents.length === 0 ? (
+                        <p className="text-gray-600">You have not registered for any upcoming events.</p>
+                    ) : (
+                        <section>
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-semibold text-gray-800">Upcoming Registered Events</h2>
+                                <button className="text-sm font-medium text-orange-600 hover:text-orange-800">
+                                    View All Registrations
+                                </button>
+                            </div>
+                            {registeredEvents.map(event => (<RegisteredEventCard key={event._id} event={event} />))}
+                        </section>
+                    )
                 )}
 
                 {/* Nội dung Tab: PAST EVENTS */}
                 {activeTab === 'past' && (
+                    pastEvents.length === 0 ? (
+                        <p className="text-gray-600">You have no past events.</p>
+                    ) : (
                     <section>
                         <h2 className="text-xl font-semibold text-gray-800 mb-4">Past Events</h2>
                         {pastEvents.map(event => (<PastEventCard key={event._id} event={event} />))}
                     </section>
+                    )
                 )}
 
                 {/* Nội dung Tab: CREATED BY ME */}
                 {activeTab === 'created' && (
+                    createdEvents.length === 0 ? (
+                        <p className="text-gray-600">You have not created any events.</p>
+                    ) : (
                     <section>
                         <h2 className="text-xl font-semibold text-gray-800 mb-4">Events Created By Me</h2>
                         {createdEvents.map(event => (<CreatedEventCard key={event._id} event={event} />))}
                     </section>
+                    )
                 )}
 
             </main>

@@ -1,2 +1,2 @@
-Neu phai mua ve thi hien qr thanh toan roi sinh ma ticket, register thi chi can sinh ma khong can thanh toan
-Analytics
+Admin
+Sinh du lieu de test(sinh cang nhieu cang tot)

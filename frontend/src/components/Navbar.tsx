@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Search, User, LogOut, Menu, X, LayoutDashboard } from 'lucide-react'; 
+import { Search, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface NavItemProps {
     children: React.ReactNode;
-    to: string; 
+    to: string;
 }
 
 const NavItem: React.FC<NavItemProps> = ({ children, to }) => (
-    <Link 
-        to={to} 
+    <Link
+        to={to}
         className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-orange-500 transition duration-150"
     >
         {children}
@@ -25,12 +25,21 @@ const Navbar: React.FC = () => {
     // Kiểm tra trạng thái đăng nhập khi component mount
     useEffect(() => {
         const checkAuth = () => {
-            const token = localStorage.getItem('token');
-            const userData = localStorage.getItem('user');
-            
-            if (token && userData) {
-                setIsLoggedIn(true);
-                setUser(JSON.parse(userData));
+            const token = localStorage.getItem("token");
+            const userData = localStorage.getItem("user");
+
+            if (token && userData && userData !== "undefined") {
+                try {
+                    const parsedUser = JSON.parse(userData);
+                    setIsLoggedIn(true);
+                    setUser(parsedUser);
+                } catch (error) {
+                    console.error("Invalid user data in localStorage:", error);
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("token");
+                    setIsLoggedIn(false);
+                    setUser(null);
+                }
             } else {
                 setIsLoggedIn(false);
                 setUser(null);
@@ -41,7 +50,7 @@ const Navbar: React.FC = () => {
 
         // Listen cho sự thay đổi localStorage (khi login/logout)
         window.addEventListener('storage', checkAuth);
-        
+
         return () => {
             window.removeEventListener('storage', checkAuth);
         };
@@ -59,7 +68,7 @@ const Navbar: React.FC = () => {
     return (
         <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                
+
                 {/* Logo Section */}
                 <div className="flex items-center space-x-2">
                     <Link to="/" className="flex items-center">
@@ -83,7 +92,7 @@ const Navbar: React.FC = () => {
                 {/* Right Section */}
                 <div className="flex items-center space-x-3">
                     {/* Search Icon */}
-                    <button 
+                    <button
                         aria-label="Search"
                         className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition"
                     >
@@ -136,7 +145,7 @@ const Navbar: React.FC = () => {
                             )}
                         </div>
                     ) : (
-                        <Link 
+                        <Link
                             to="/login"
                             className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition"
                         >

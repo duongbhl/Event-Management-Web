@@ -4,6 +4,9 @@ import Ticket from "../models/ticket.model";
 import { uploadToCloudinary } from '../middleware/upload.middleware';
 
 // --- EVENT CRUD ---
+
+
+// --- CREATE EVENT ---
 export const createEvent = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
@@ -41,6 +44,74 @@ export const createEvent = async (req: any, res: Response) => {
     res.status(500).json({ message: "Event creation failed", error });
   }
 };
+
+// --- UPDATE EVENT ---
+export const updateEvent = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const eventId = req.params.id;
+
+    const {
+      title,
+      date,
+      time,
+      location,
+      expectedAttendees,
+      price,
+      description,
+      category,
+    } = req.body;
+
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // ❌ Không cho sửa event không phải của mình
+    if (event.organizerId.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized to edit this event" });
+    }
+
+    // ❌ Không cho sửa event đã được duyệt
+    if (event.status === "approved") {
+      return res.status(400).json({ message: "Approved event cannot be edited" });
+    }
+
+    let imageUrl = event.image;
+
+    // 👉 Nếu có ảnh mới → upload
+    if (req.file) {
+      imageUrl = await uploadToCloudinary(
+        req.file.buffer,
+        "event-management/events",
+        [{ width: 1200, height: 630, crop: "fill" }]
+      );
+    }
+
+    // 👉 Update fields
+    event.title = title ?? event.title;
+    event.date = date ?? event.date;
+    event.time = time ?? event.time;
+    event.location = location ?? event.location;
+    event.expectedAttendees = expectedAttendees ?? event.expectedAttendees;
+    event.price = price ?? event.price;
+    event.description = description ?? event.description;
+    event.category = category ?? event.category;
+    event.image = imageUrl;
+
+    await event.save();
+
+    res.status(200).json({
+      message: "Event updated successfully",
+      data: event,
+    });
+  } catch (error) {
+    console.error("Error in updateEvent:", error);
+    res.status(500).json({ message: "Event update failed", error });
+  }
+};
+
 
 
 //lay tat ca event cua minh
@@ -125,7 +196,7 @@ export const getApprovedEventsNext3Months = async (req: any, res: Response) => {
 };
 
 
-// 3️⃣ Tổng attendees của các sự kiện trong 1 tháng trước
+// 3️⃣ Tổng attendees của các sự kiện trong 3 tháng trước
 export const getTotalAttendeesLastMonth = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
@@ -149,7 +220,7 @@ export const getTotalAttendeesLastMonth = async (req: any, res: Response) => {
 };
 
 
-// 4️⃣ Tổng thu nhập của các sự kiện trong 1 tháng trước
+// 4️⃣ Tổng thu nhập của các sự kiện trong 3 tháng trước
 export const getTotalRevenueLastMonth = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
@@ -173,9 +244,6 @@ export const getTotalRevenueLastMonth = async (req: any, res: Response) => {
 };
 
 
-
-
-
 //lay event cua tat ca moi nguoi tru cua minh (approved)
 export const getEvents = async (req: any, res: Response) => {
   try {
@@ -187,6 +255,19 @@ export const getEvents = async (req: any, res: Response) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+//lay chi tiet event theo id
+export const getEventById = async (req: Request, res: Response) => {
+  try {
+    const event = await Event.findById(req.params.id)
+      .populate('organizerId', 'username email'); // Lấy thông tin organizer
+    if (!event) return res.status(404).json({ message: "Event not found" });
+    res.status(200).json({ data: event });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 
 // --- TICKET CRUD ---
 export const bookTicket = async (req: any, res: Response) => {
@@ -261,15 +342,6 @@ export const getMyTickets = async (req: any, res: Response) => {
   }
 };
 
-export const getEventById = async (req: Request, res: Response) => {
-  try {
-    const event = await Event.findById(req.params.id)
-      .populate('organizerId', 'username email'); // Lấy thông tin organizer
-    if (!event) return res.status(404).json({ message: "Event not found" });
-    res.status(200).json({ data: event });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error" });
-  }
-};
+
 
 

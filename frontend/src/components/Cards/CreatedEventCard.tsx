@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { CalendarIcon, Clock, Edit, MapPin, Settings } from "lucide-react";
 import type { EventDataProp } from "../Interfaces/EventDataProp";
 import { Button } from "../ui/button";
+import { dateToString } from "@/lib/utils";
 
 
 
@@ -11,9 +12,14 @@ export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) 
     //dieu huong
     const navigate = useNavigate();
     const editEventHandle = () => {
-        navigate(`/addevent/${event._id}`, { state: { ...event } })
+        navigate(`/addevent/${event._id}`, {
+            state: {
+                ...event,
+                isEdit: true,
+            },
+        });
+    };
 
-    }
 
 
     //hien so luong dang ky va ti le dang ky
@@ -30,8 +36,8 @@ export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) 
             <div className="flex">
                 <div className="w-1/4 bg-gray-100 flex items-center justify-center overflow-hidden">
                     {event.image ? (
-                        <img 
-                            src={event.image} 
+                        <img
+                            src={event.image}
                             alt={event.title}
                             className="w-full h-full object-cover"
                         />
@@ -50,7 +56,7 @@ export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) 
 
                     {/* Date, Time, Location */}
                     <div className="space-y-2 text-sm mb-4 text-gray-700">
-                        <div className="flex items-center"><CalendarIcon className="w-4 h-4 mr-2 text-gray-500" /><span>{event.date}</span></div>
+                        <div className="flex items-center"><CalendarIcon className="w-4 h-4 mr-2 text-gray-500" /><span>{dateToString(event.date)}</span></div>
                         <div className="flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-500" /><span>{event.time}</span></div>
                         <div className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-gray-500" /><span>{event.location}</span></div>
                     </div>

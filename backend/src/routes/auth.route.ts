@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { changePassword, forgotPassword, getUserProfile, login, register, resetPassword, updateAvatar } from "../controllers/auth.controller";
+import { changePassword, forgotPassword, getUserProfile, login, register, resetPassword, updateAvatar, updateProfile } from "../controllers/auth.controller";
 import { protect } from "../middleware/auth.middleware";
 import { uploadAvatar } from "../middleware/upload.middleware";
 
@@ -36,3 +36,6 @@ authRouter.get("/me", protect, getUserProfile);
 
 // Upload avatar route
 authRouter.post("/upload-avatar", protect, uploadAvatar.single('avatar'), updateAvatar);
+
+//save User profile route
+authRouter.put("/profile", protect, updateProfile);

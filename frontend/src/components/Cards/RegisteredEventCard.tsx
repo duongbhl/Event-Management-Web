@@ -2,6 +2,7 @@ import { CalendarIcon, Clock, MapPin } from "lucide-react";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router";
 import type { EventDataProp } from "../Interfaces/EventDataProp";
+import { dateToString } from "@/lib/utils";
 
 
 // --- 1. Registered Event Card ---
@@ -34,7 +35,7 @@ export const RegisteredEventCard: React.FC<{ event: EventDataProp}> = ({ event }
                     <p className="text-gray-600 mb-4">{event.description}</p>
                     {/* Date, Time, Location */}
                     <div className="space-y-2 text-sm mb-4 text-gray-700">
-                        <div className="flex items-center"><CalendarIcon className="w-4 h-4 mr-2 text-gray-500" /><span>{event.date}</span></div>
+                        <div className="flex items-center"><CalendarIcon className="w-4 h-4 mr-2 text-gray-500" /><span>{dateToString(event.date)}</span></div>
                         <div className="flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-500" /><span>{event.time}</span></div>
                         <div className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-gray-500" /><span>{event.location}</span></div>
                     </div>
@@ -46,7 +47,7 @@ export const RegisteredEventCard: React.FC<{ event: EventDataProp}> = ({ event }
                     {/* Actions */}
                     <div className="flex space-x-3">
                         <Button onClick={() => viewDetailsHandle()} className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition cursor-pointer">View Details</Button>
-                        <button className="px-5 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition cursor-pointer">Cancel Registration</button>
+                        
                     </div>
                 </div>
             </div>

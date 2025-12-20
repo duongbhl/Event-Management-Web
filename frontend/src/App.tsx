@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Calendar from './pages/Calendar';
-import MyEvents from './pages/myevent';
-import ViewDetails from './pages/view_details';
-import Feedback from './pages/feedback';
-import FeedbackView from './pages/feedback-view';
-import Profile from './pages/profile';
-import MyRegistrations from './pages/my_regis';
+import MyEvents from './pages/MyEvent';
+import ViewDetails from './pages/ViewDetails';
+import Feedback from './pages/Feedback';
+import FeedbackView from './pages/FeedbackView';
+import Profile from './pages/Profile';
+import MyRegistrations from './pages/My_regis';
 import Events from './pages/Events';
 import Login from './pages/Login';
 import Analytics from './pages/Analytics';
@@ -17,6 +17,10 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AddEvent from './pages/AddEvent';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import { ToastContainer } from 'react-toastify';
+import Checkout from './pages/Checkout';
+import Payment from './pages/Payment';
+import TicketQR from './pages/TicketQR';
 
 // Layout wrapper to conditionally show Navbar/Footer
 function AppLayout() {
@@ -27,17 +31,20 @@ function AppLayout() {
     <>
       {!isAdminRoute && <Navbar />}
       <Routes>
-        <Route path="/" element={<Home />} /> 
+        <Route path="/" element={<Home />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/myevent" element={<MyEvents />} />
         <Route path="/view-details/:id" element={<ViewDetails />} />
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/feedback-view/:id" element={<FeedbackView />} />
-        <Route path='/analytics' element={<Analytics/>}></Route>
+        <Route path='/analytics' element={<Analytics />}/>
         <Route path="/profile" element={<Profile />} />
         <Route path="/registrations" element={<MyRegistrations />} />
-        <Route path='/addevent/:id' element={<AddEvent/>}></Route>
-        <Route path='/addevent/' element={<AddEvent/>}></Route>
+        <Route path="/checkout/:id" element={<Checkout />} />
+        <Route path="/payment/:id" element={<Payment />} />
+        <Route path="/ticket/:id" element={<TicketQR />} />
+        <Route path='/addevent/:id' element={<AddEvent />} />
+        <Route path='/addevent/' element={<AddEvent />}/>
         <Route path="/events" element={<Events />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -46,16 +53,28 @@ function AppLayout() {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
-      {!isAdminRoute && <Footer/>}
+      {!isAdminRoute && <Footer />}
     </>
   );
 }
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppLayout />
-    </BrowserRouter>
+    <>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
+    </>
+
   );
 }
 export default App;

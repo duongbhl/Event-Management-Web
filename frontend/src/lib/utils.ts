@@ -18,13 +18,27 @@ export function isValidDateDMY(dateStr: string) {
 }
 
 
+export const dateToString = (date: Date | string) => {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
 
-//tach date ra month day year
-export const formatDate = (dateStr: String) => {
-  const parts = dateStr.split('/');
-  if(!parts) return {month:'', day:'', year:''};
-  return{month: parts[0], day: parts[1], year: parts[2]}; 
-}
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${month}/${day}/${year}`;
+};
+
+
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+
+  return {
+    day: date.getDate(),
+    month: date.toLocaleString("en-US", { month: "short" }).toUpperCase(),
+    year: date.getFullYear(),
+  };
+};
 
 
 // xu li filter upcoming, this day, this week cua su kien

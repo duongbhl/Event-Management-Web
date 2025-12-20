@@ -7,6 +7,7 @@ import { isWithinRange } from '@/lib/utils';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
 import axios from 'axios';
 
+
 // ============= Dummy Data =================
 const categories = [
     'Arts & Science', 'Engineering', 'Agriculture', 'Pharmacy', 'Physiotherapy',
@@ -15,14 +16,7 @@ const categories = [
 const upcomingFilters = ['Upcoming', 'Today', 'Tomorrow', 'This Week', 'This Month'];
 const typeFilters = ['Free', 'Paid'];
 
-const eventList: EventDataProp[] = [
-    { _id: '1', category: 'Allied Health Sciences', title: 'Annual Spring Concert', description: 'Join us...', date: '12/15/2025', time: '19:00', location: 'University Auditorium', attendees: 120, expectedAttendees: 200, price: 0, status: 'approved' },
-    { _id: '2', category: 'Business', title: 'Career Fair', description: 'Connect with employers...', date: '12/15/2025', time: '10:00', location: 'Student Center', attendees: 300, expectedAttendees: 500, price: 0, status: 'approved' },
-    { _id: '3', category: 'Hotel Management', title: 'Tech Workshop: AI Fundamentals', description: 'Learn AI basics', date: '12/15/2025', time: '14:00', location: 'Engineering Building', attendees: 80, expectedAttendees: 150, price: 50, status: 'approved' },
-    { _id: '4', category: 'Engineering', title: 'Basketball Tournament', description: 'Inter-department competition', date: '12/15/2025', time: '09:00', location: 'Sports Complex', attendees: 500, expectedAttendees: 800, price: 0, status: 'approved' },
-    { _id: '5', category: 'Engineering', title: 'Student Club Fair', description: 'Explore clubs', date: '12/15/2025', time: '11:00', location: 'Main Quad', attendees: 200, expectedAttendees: 300, price: 0, status: 'approved' },
-    { _id: '6', category: 'Pharmacy', title: 'Research Symposium', description: 'Student research showcase', date: '12/15/2025', time: '13:00', location: 'Science Center', attendees: 150, expectedAttendees: 250, price: 0, status: 'approved' },
-];
+
     
 // ============= Dropdown Component ===============
 const FilterDropdown: React.FC<FilterDropdownProp> = ({ options, selectedValue, onSelect}) => (
@@ -56,7 +50,7 @@ const Events: React.FC = () => {
     const eventsPerPage = 6;
 
     const [events, setEvents] = useState<EventDataProp[]>([]);
-    const [loading, setLoading] = useState(true);
+
 
     // Reset page when filters/search change
     React.useEffect(() => {
@@ -74,8 +68,6 @@ const Events: React.FC = () => {
                 setEvents(res.data.data);
             } catch (error) {
                 console.error('Error fetching events:', error);
-            } finally {
-                setLoading(false);
             }
         };
         fetchEvents();

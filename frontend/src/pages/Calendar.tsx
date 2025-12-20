@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { EventDataProp } from "@/components/Interfaces/EventDataProp";
 import { useNavigate } from "react-router";
+import axios from "axios";
 
 
 /* ============================================================
@@ -98,11 +99,15 @@ export const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
     3. Lịch chính (Calendar Grid)
 ============================================================ */
 export const CalendarGrid: React.FC<{ events: EventDataProp[] }> = ({ events }) => {
-    
+
 
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
+    const isSameDay = (day: number) =>
+        day === today.getDate() &&
+        currentMonth === today.getMonth() &&
+        currentYear === today.getFullYear();
 
     const monthNames = [
         "January", "February", "March", "April", "May", "June",
@@ -149,10 +154,9 @@ export const CalendarGrid: React.FC<{ events: EventDataProp[] }> = ({ events }) 
 
     //dieu huong
     const navigate = useNavigate();
-    const viewDetailsHandle = (event:EventDataProp) => {
-        navigate(`/view-details/${event._id}}`, { state: { ...event } })
-
-    }
+    const viewDetailsHandle = (event: EventDataProp) => {
+        navigate(`/view-details/${event._id}`, { state: { ...event } });
+    };
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-md p-4">
@@ -198,12 +202,11 @@ export const CalendarGrid: React.FC<{ events: EventDataProp[] }> = ({ events }) 
                 {calendarDays.map((day, idx) => (
                     <div
                         key={idx}
-                        
-                        className={`min-h-[120px] border-r border-b p-2 text-sm
-                          ${day ? "bg-white" : "bg-gray-50 text-gray-300"}
-                        `}
+
+                        className={`min-h-[120px] border-r border-b p-2 text-sm ${day && isSameDay(day) ? "bg-gray-100/70" : ""}  `}
                     >
                         {day}
+
 
                         {/* HIỂN THỊ SỰ KIỆN */}
                         {day && eventByDay[day] && (
@@ -212,13 +215,22 @@ export const CalendarGrid: React.FC<{ events: EventDataProp[] }> = ({ events }) 
                                 {eventByDay[day].map(ev => (
                                     <div
                                         key={ev._id}
-                                        onClick={()=>viewDetailsHandle(ev)}
-                                        className="text-xs bg-gray-100 border border-gray-300 px-2 py-1 rounded-md
-                                                   hover:bg-gray-200 cursor-pointer whitespace-nowrap overflow-hidden"
+                                        onClick={() => viewDetailsHandle(ev)}
+                                        className="group cursor-pointer rounded-lg bg-slate-100 border-l-4 px-2 py-1.5 hover:bg-slate-200 transition"
                                     >
-                                        <span className="font-medium">{ev.time}</span>{" "}
-                                        {ev.title}
+                                        <div className="flex items-center gap-1">
+                                            {/* Time badge */}
+                                            <span className="text-[10px] font-semibold bg-white border border-slate-300 rounded px-1.5 py-0.5 shrink-0">
+                                                {ev.time}
+                                            </span>
+
+                                            {/* Title */}
+                                            <span className="text-xs font-medium text-slate-800 truncate">
+                                                {ev.title}
+                                            </span>
+                                        </div>
                                     </div>
+
                                 ))}
 
                             </div>
@@ -235,24 +247,58 @@ export const CalendarGrid: React.FC<{ events: EventDataProp[] }> = ({ events }) 
 ============================================================ */
 
 const Calendar: React.FC = () => {
+    const [events, setEvents] = useState<EventDataProp[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // 🔥 DỮ LIỆU MẪU GIỐNG SCHOOLER
-    const sampleEvents: EventDataProp[] = [
-        { _id: '11', title: "日本語7", date: "2025-12-02", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Agriculture' },
-        { _id: '22', title: "ITSS in Japanese(1)", date: "2025-12-04", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Allied Health Sciences' },
-        { _id: '32', title: "日本語7", date: "2025-12-09", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Business' },
-        { _id: '43', title: "日本語7", date: "2025-12-16", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Engineering' },
-        { _id: '53', title: "ITSS in Japanese(1)", date: "2025-12-12", time: "10:15 - 14:00", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Hotel Management' },
-        { _id: '63', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Physiotherapy' },
-        { _id: '72', title: "日本語7", date: "2025-12-23", time: "08:25 - 10:05", location: 'hanoi', attendees: 10, expectedAttendees: 10, price: 10, description: ' ', status: 'approved', category: 'Business' },
+    useEffect(() => {
+        const fetchRegisteredEvents = async () => {
+            try {
+                const token = localStorage.getItem("token");
 
-    ];
+                const res = await axios.get(
+                    "http://localhost:5000/api/user/my-tickets",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const now = new Date();
+
+                // LẤY EVENT TỪ TICKET + CHỈ EVENT SẮP DIỄN RA
+                const registeredEvents: EventDataProp[] = res.data.data
+                    .map((ticket: any) => ticket.eventId)
+                    .filter(
+                        (ev: EventDataProp) =>
+                            ev && new Date(ev.date) > now
+                    );
+
+                setEvents(registeredEvents);
+            } catch (error) {
+                console.error("Fetch registered events error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRegisteredEvents();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-gray-500">
+                Loading calendar...
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <CalendarGrid events={sampleEvents} />
+            <CalendarGrid events={events} />
         </div>
     );
 };
 
 export default Calendar;
+
