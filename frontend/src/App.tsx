@@ -6,7 +6,6 @@ import ViewDetails from './pages/ViewDetails';
 import Feedback from './pages/Feedback';
 import FeedbackView from './pages/FeedbackView';
 import Profile from './pages/Profile';
-import MyRegistrations from './pages/My_regis';
 import Events from './pages/Events';
 import Login from './pages/Login';
 import Analytics from './pages/Analytics';
@@ -21,6 +20,7 @@ import { ToastContainer } from 'react-toastify';
 import Checkout from './pages/Checkout';
 import Payment from './pages/Payment';
 import TicketQR from './pages/TicketQR';
+import ManageEvent from './pages/ManageEvent';
 
 // Layout wrapper to conditionally show Navbar/Footer
 function AppLayout() {
@@ -39,10 +39,10 @@ function AppLayout() {
         <Route path="/feedback-view/:id" element={<FeedbackView />} />
         <Route path='/analytics' element={<Analytics />}/>
         <Route path="/profile" element={<Profile />} />
-        <Route path="/registrations" element={<MyRegistrations />} />
         <Route path="/checkout/:id" element={<Checkout />} />
         <Route path="/payment/:id" element={<Payment />} />
         <Route path="/ticket/:id" element={<TicketQR />} />
+        <Route path="/manage-event/:eventId" element={<ManageEvent />} />
         <Route path='/addevent/:id' element={<AddEvent />} />
         <Route path='/addevent/' element={<AddEvent />}/>
         <Route path="/events" element={<Events />} />

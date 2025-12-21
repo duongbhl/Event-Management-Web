@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import apiClient from "@/lib/axios";
+import { API_ENDPOINTS } from "@/config/api";
 import {QRCodeSVG} from "qrcode.react";
 
 const TicketQR: React.FC = () => {
@@ -9,11 +10,7 @@ const TicketQR: React.FC = () => {
 
   useEffect(() => {
     const fetchTicket = async () => {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(
-        `http://localhost:5000/api/user/tickets/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await apiClient.get(API_ENDPOINTS.USER.TICKET(id!));
       setTicket(res.data.data);
     };
     fetchTicket();
@@ -26,11 +23,14 @@ const TicketQR: React.FC = () => {
       <div className="bg-white p-8 rounded-xl shadow-lg text-center">
         <h1 className="text-xl font-bold mb-4">Your Ticket</h1>
 
-        <QRCodeSVG
-          value={ticket._id}
-          size={200}
-          level="H"
-        />
+        <div className="flex justify-center items-center mb-4">
+          <QRCodeSVG
+            value={ticket._id}
+            size={200}
+            level="H"
+            includeMargin={true}
+          />
+        </div>
 
         <p className="mt-4 text-sm text-gray-600">
           Show this QR code at the event entrance

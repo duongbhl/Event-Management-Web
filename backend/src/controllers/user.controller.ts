@@ -118,6 +118,21 @@ export const updateEvent = async (req: any, res: Response) => {
 export const getAllEvent = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
+    const now = new Date();
+    
+    // Auto-reject events that have passed but are still pending
+    // Tự động reject các events đã quá ngày nhưng vẫn còn pending
+    await Event.updateMany(
+      {
+        organizerId: userId,
+        status: "pending",
+        date: { $lt: now }
+      },
+      {
+        $set: { status: "rejected" }
+      }
+    );
+    
     const events = await Event.find({ organizerId: userId });
     res.status(200).json({ data: events });
   } catch (error) {
@@ -277,18 +292,50 @@ export const bookTicket = async (req: any, res: Response) => {
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
+    // Enforce quantity = 1 (mỗi user chỉ được đặt 1 vé cho mỗi sự kiện)
+    const ticketQuantity = 1;
+    
+    // Kiểm tra event đã qua chưa
+    const eventDate = new Date(event.date);
+    const now = new Date();
+    if (eventDate < now) {
+      return res.status(400).json({ 
+        message: "This event has already ended. You cannot register for past events." 
+      });
+    }
+    
+    // Option 4: Ngăn organizer đăng ký event của chính mình
+    if (event.organizerId.toString() === userId) {
+      return res.status(400).json({ 
+        message: "You are the organizer of this event. You don't need to register. You can manage the event from 'Created By Me' section." 
+      });
+    }
+    
+    // check xem user đã có ticker booked chưa
+    const existingTicket = await Ticket.findOne({
+      userId,
+      eventId,
+      status: "booked"
+    });
+
+    if (existingTicket) {
+      return res.status(400).json({ 
+        message: "Bạn đã đặt vé cho sự kiện này rồi. Mỗi người chỉ được đăng ký 1 lần cho mỗi sự kiện." 
+      });
+    }
+
     const remaining = (event.expectedAttendees || 0) - (event.attendees || 0);
-    if (quantity > remaining) return res.status(400).json({ message: "Not enough tickets" });
+    if (ticketQuantity > remaining) return res.status(400).json({ message: "Not enough tickets" });
 
     const ticket = await Ticket.create({
       userId,
       eventId,
-      quantity,
-      totalPrice: quantity * event.price,
+      quantity: ticketQuantity,
+      totalPrice: ticketQuantity * event.price,
       status: "booked",
     });
 
-    event.attendees += quantity;
+    event.attendees += ticketQuantity;
     await event.save();
 
     res.status(200).json({ message: "Booked successfully", data: ticket });
@@ -334,10 +381,117 @@ export const getTicketById = async (req: any, res: Response) => {
 export const getMyTickets = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const tickets = await Ticket.find({ userId, status: "booked" })
+    const { eventId } = req.query; // Hỗ trợ filter theo eventId (optional)
+
+    // Build query
+    const query: any = { userId, status: "booked" };
+    if (eventId) {
+      query.eventId = eventId;
+    }
+
+    const tickets = await Ticket.find(query)
       .populate('eventId'); // Populate để lấy thông tin event
     res.status(200).json({ data: tickets });
   } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// Lấy danh sách attendees cho một event (chỉ organizer mới có quyền)
+export const getEventAttendees = async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const eventId = req.params.eventId;
+
+    // Kiểm tra event có tồn tại không
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Kiểm tra user có phải là organizer không
+    if (event.organizerId.toString() !== userId) {
+      return res.status(403).json({ message: "Unauthorized. Only event organizer can view attendees." });
+    }
+
+    // Lấy tất cả tickets booked cho event này
+    const tickets = await Ticket.find({
+      eventId: eventId,
+      status: "booked"
+    })
+      .populate({
+        path: 'userId',
+        select: 'username email avatar',
+        // Giữ lại ObjectId nếu user không tồn tại thay vì null
+        options: { lean: false }
+      })
+      .sort({ bookedAt: -1 }); // Sắp xếp theo thời gian đăng ký mới nhất
+
+    // Lọc bỏ các tickets có userId null hoặc không phải là object (user đã bị xóa)
+    // Kiểm tra nếu userId là object đã được populate (có username hoặc email)
+    const validTickets = tickets.filter(ticket => {
+      const userId = ticket.userId as any;
+      // Kiểm tra nếu userId là object đã được populate thành công (có username hoặc email)
+      // Nếu userId là ObjectId string hoặc null thì bỏ qua
+      return userId && 
+             typeof userId === 'object' && 
+             (userId.username !== undefined || userId.email !== undefined);
+    });
+
+    // Log chi tiết để debug
+    console.log(`\n[getEventAttendees] Event ${eventId}:`);
+    console.log(`  - Event title: ${event.title}`);
+    console.log(`  - Event.attendees (field): ${event.attendees || 0}`);
+    console.log(`  - Query: Ticket.find({ eventId: "${eventId}", status: "booked" })`);
+    console.log(`  - Found ${tickets.length} tickets with status="booked"`);
+    console.log(`  - After populate & filter: ${validTickets.length} valid tickets`);
+    
+    if (tickets.length > 0) {
+        console.log(`  - Ticket details:`);
+        tickets.forEach((ticket, index) => {
+            const userId = ticket.userId as any;
+            const isValid = userId && 
+                           typeof userId === 'object' && 
+                           (userId.username !== undefined || userId.email !== undefined);
+            console.log(`    ${index + 1}. Ticket ${ticket._id}:`);
+            console.log(`       Quantity: ${ticket.quantity}, Price: $${ticket.totalPrice}`);
+            console.log(`       UserId populated: ${isValid ? '✅' : '❌'}`);
+            if (isValid && userId.username) {
+                console.log(`       User: ${userId.username} (${userId.email})`);
+            }
+        });
+    }
+
+    // Tính toán thống kê từ tất cả tickets (bao gồm cả những ticket có userId null)
+    const totalAttendees = tickets.reduce((sum, ticket) => sum + (ticket.quantity || 0), 0);
+    const totalRevenue = tickets.reduce((sum, ticket) => sum + (ticket.totalPrice || 0), 0);
+    const bookedCount = tickets.length;
+    
+    console.log(`  - Statistics: totalAttendees=${totalAttendees}, totalRevenue=$${totalRevenue}, bookedCount=${bookedCount}`);
+    console.log(`  - Difference with Event.attendees field: ${(event.attendees || 0) - totalAttendees}\n`);
+
+    res.status(200).json({
+      data: {
+        event: {
+          _id: event._id,
+          title: event.title,
+          date: event.date,
+          location: event.location,
+          expectedAttendees: event.expectedAttendees,
+          price: event.price,
+          status: event.status,
+        },
+        attendees: validTickets,
+        statistics: {
+          totalAttendees,
+          totalRevenue,
+          bookedCount,
+          cancelledCount: 0, // Có thể thêm sau
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error in getEventAttendees:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

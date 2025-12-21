@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "@/lib/axios";
+import { API_ENDPOINTS } from "@/config/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 interface StatCardProps {
@@ -24,19 +25,16 @@ const Analytics: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const headers = { Authorization: `Bearer ${token}` };
-
         const [
           approved5,
           approved3,
           attendees,
           revenue,
         ] = await Promise.all([
-          axios.get("http://localhost:5000/api/user/stats/approved-last-5-months", { headers }),
-          axios.get("http://localhost:5000/api/user/stats/approved-next-3-months", { headers }),
-          axios.get("http://localhost:5000/api/user/stats/attendees-last-month", { headers }),
-          axios.get("http://localhost:5000/api/user/stats/revenue-last-month", { headers }),
+          apiClient.get(API_ENDPOINTS.USER.STATS.APPROVED_LAST_5_MONTHS),
+          apiClient.get(API_ENDPOINTS.USER.STATS.APPROVED_NEXT_3_MONTHS),
+          apiClient.get(API_ENDPOINTS.USER.STATS.ATTENDEES_LAST_MONTH),
+          apiClient.get(API_ENDPOINTS.USER.STATS.REVENUE_LAST_MONTH),
         ]);
 
         setApprovedLast5Months(approved5.data.total);

@@ -21,6 +21,7 @@ const Navbar: React.FC = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
     // Kiểm tra trạng thái đăng nhập khi component mount
     useEffect(() => {
@@ -44,6 +45,7 @@ const Navbar: React.FC = () => {
                 setIsLoggedIn(false);
                 setUser(null);
             }
+            setIsCheckingAuth(false);
         };
 
         checkAuth();
@@ -64,6 +66,24 @@ const Navbar: React.FC = () => {
         setShowUserMenu(false);
         navigate('/login');
     };
+
+    // check auth sau khi ấn exit admin thì nó sẽ không bị signout session rồi mới load signin session
+    if (isCheckingAuth) {
+        return (
+            <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    {/* Logo Section */}
+                    <div className="flex items-center space-x-2">
+                        <Link to="/" className="flex items-center">
+                            <div className="text-2xl font-bold text-orange-600">TU Events</div>
+                        </Link>
+                    </div>
+                    {/* Placeholder để tránh layout shift */}
+                    <div className="w-24"></div>
+                </div>
+            </header>
+        );
+    }
 
     return (
         <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">

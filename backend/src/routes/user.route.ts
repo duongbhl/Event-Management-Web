@@ -16,6 +16,7 @@ import {
    getMyTickets,
    getEventById,
    updateEvent,
+   getEventAttendees,
 } from "../controllers/user.controller";
 import { protect } from "../middleware/auth.middleware";
 import { uploadEventImage } from "../middleware/upload.middleware";
@@ -54,6 +55,9 @@ userRouter.get("/allEvents/approved", protect, getEvents);
 
 // Lấy chi tiết 1 event
 userRouter.get("/event/:id", protect, getEventById);
+
+// Lấy danh sách attendees cho một event (chỉ organizer)
+userRouter.get("/event/:eventId/attendees", protect, getEventAttendees);
 
 
 

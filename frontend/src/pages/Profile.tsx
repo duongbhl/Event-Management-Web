@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, IdCard, Save, Loader2, ArrowLeft, LogOut, Key, Camera } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 import { useToast } from '@/hooks/useToast';
 
 interface UserData {
@@ -136,16 +137,11 @@ const Profile: React.FC = () => {
             }
 
             // API call to update profile
-            const response = await axios.put(
-                'http://localhost:5000/api/auth/profile',
+            const response = await apiClient.put(
+                API_ENDPOINTS.AUTH.PROFILE,
                 {
                     full_name: profileData.fullName,
                     roll_number: profileData.rollNumber || null,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
                 }
             );
 
@@ -196,16 +192,11 @@ const Profile: React.FC = () => {
             }
 
             // API call to change password
-            const response = await axios.put(
-                'http://localhost:5000/api/auth/change-password',
+            const response = await apiClient.put(
+                API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
                 {
                     currentPassword: passwordData.currentPassword,
                     newPassword: passwordData.newPassword,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
                 }
             );
 
@@ -261,16 +252,14 @@ const Profile: React.FC = () => {
         setError(null);
 
         try {
-            const token = localStorage.getItem('token');
             const formData = new FormData();
             formData.append('avatar', file);
 
-            const response = await axios.post(
-                'http://localhost:5000/api/auth/upload-avatar',
+            const response = await apiClient.post(
+                API_ENDPOINTS.AUTH.UPLOAD_AVATAR,
                 formData,
                 {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'multipart/form-data'
                     }
                 }

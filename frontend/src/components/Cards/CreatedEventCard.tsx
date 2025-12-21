@@ -1,3 +1,4 @@
+import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { CalendarIcon, Clock, Edit, MapPin, Settings } from "lucide-react";
 import type { EventDataProp } from "../Interfaces/EventDataProp";
@@ -8,29 +9,49 @@ import { dateToString } from "@/lib/utils";
 
 
 // --- 3. Created Event Card ---
-export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
+export const CreatedEventCard: React.FC<{ event: EventDataProp }> = React.memo(({ event }) => {
     //dieu huong
     const navigate = useNavigate();
-    const editEventHandle = () => {
+    const editEventHandle = useCallback(() => {
         navigate(`/addevent/${event._id}`, {
             state: {
                 ...event,
                 isEdit: true,
             },
         });
-    };
+    }, [navigate, event]);
 
-
-
-    //hien so luong dang ky va ti le dang ky
-    const progress = Math.round((event.attendees / event.expectedAttendees) * 100);
-    const isFull = event.attendees === event.expectedAttendees;
+    // Memoize các tính toán để tránh tính lại mỗi lần render
+    const { progress, isFull, isPast, eventStatus } = useMemo(() => {
+        const progress = Math.round((event.attendees / event.expectedAttendees) * 100);
+        const isFull = event.attendees === event.expectedAttendees;
+        
+        // Check if event has passed
+        // Không hiển thị "đã diễn ra" nếu event đã bị rejected (vì rejected thì không thể diễn ra)
+        const now = new Date();
+        const eventDate = new Date(event.date);
+        const isPast = eventDate < now;
+        // Chỉ hiển thị "đã diễn ra" nếu event đã qua VÀ không phải rejected
+        const shouldShowPastStatus = isPast && event.status !== 'rejected';
+        const eventStatus = shouldShowPastStatus ? 'Đã diễn ra' : 'Chưa diễn ra';
+        
+        return { progress, isFull, isPast, eventStatus };
+    }, [event.attendees, event.expectedAttendees, event.date, event.status]);
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden relative">
-            {/* Status Badge */}
-            <div className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full ${event.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                {event.status}
+            {/* Status Badge - Top Right */}
+            <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+                <div className={`px-3 py-1 text-xs font-bold rounded-full ${event.status === 'approved' ? 'bg-green-100 text-green-700' : event.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {event.status}
+                </div>
+                {/* Event Date Status Badge - Below status */}
+                {/* Chỉ hiển thị nếu không phải rejected (vì rejected thì không thể diễn ra) */}
+                {event.status !== 'rejected' && (
+                    <div className={`px-3 py-1 text-xs font-bold rounded-full ${isPast ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {eventStatus}
+                    </div>
+                )}
             </div>
 
             <div className="flex">
@@ -40,6 +61,7 @@ export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) 
                             src={event.image}
                             alt={event.title}
                             className="w-full h-full object-cover"
+                            loading="lazy"
                         />
                     ) : (
                         <div className="text-gray-400 text-sm">No Image</div>
@@ -75,7 +97,12 @@ export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) 
 
                     {/* Actions */}
                     <div className="flex space-x-3">
-                        <button className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition flex items-center cursor-pointer"><Settings className="w-4 h-4 mr-1" /> Manage Event</button>
+                        <Button 
+                            onClick={() => navigate(`/manage-event/${event._id}`)} 
+                            className="px-5 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-700 transition flex items-center cursor-pointer"
+                        >
+                            <Settings className="w-4 h-4 mr-1" /> Manage Event
+                        </Button>
 
                         <Button onClick={() => editEventHandle()} className="px-5 py-2 text-sm font-medium bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition flex items-center cursor-pointer"><Edit className="w-4 h-4 mr-1" /> Edit Event</Button>
                     </div>
@@ -83,4 +110,6 @@ export const CreatedEventCard: React.FC<{ event: EventDataProp }> = ({ event }) 
             </div>
         </div>
     );
-};
+});
+
+CreatedEventCard.displayName = 'CreatedEventCard';

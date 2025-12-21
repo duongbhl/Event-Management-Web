@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Search, ChevronDown, List, Grid } from 'lucide-react';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
 import type { FilterDropdownProp } from '@/components/Interfaces/FilterDropdownProp';
 import { EventCard } from '@/components/Cards/EventCard';
 import { isWithinRange } from '@/lib/utils';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
-import axios from 'axios';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 
 
 // ============= Dummy Data =================
@@ -13,7 +14,7 @@ const categories = [
     'Arts & Science', 'Engineering', 'Agriculture', 'Pharmacy', 'Physiotherapy',
     'Allied Health Sciences', 'Hotel Management', 'Business'
 ];
-const upcomingFilters = ['Upcoming', 'Today', 'Tomorrow', 'This Week', 'This Month'];
+const upcomingFilters = ['Upcoming', 'Today', 'Tomorrow', 'This Week', 'This Month', 'Past Event'];
 const typeFilters = ['Free', 'Paid'];
 
 
@@ -40,6 +41,7 @@ const FilterDropdown: React.FC<FilterDropdownProp> = ({ options, selectedValue, 
 // ============= Main Component =================
 const Events: React.FC = () => {
     const [search, setSearch] = React.useState('');
+    const [debouncedSearch, setDebouncedSearch] = React.useState('');
     const [categoryFilter, setCategoryFilter] = React.useState('All Categories');
     const [upcomingFilter, setUpcomingFilter] = React.useState('Upcoming');
     const [typeFilter, setTypeFilter] = React.useState('All Types');
@@ -51,20 +53,25 @@ const Events: React.FC = () => {
 
     const [events, setEvents] = useState<EventDataProp[]>([]);
 
+    // Debounce search input để giảm số lần filter
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [search]);
 
     // Reset page when filters/search change
     React.useEffect(() => {
         setCurrentPage(1);
-    }, [search, categoryFilter, upcomingFilter, typeFilter]);
+    }, [debouncedSearch, categoryFilter, upcomingFilter, typeFilter]);
 
     // Fetch events from API
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:5000/api/user/allEvents/approved', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await apiClient.get(API_ENDPOINTS.USER.ALL_EVENTS_APPROVED);
                 setEvents(res.data.data);
             } catch (error) {
                 console.error('Error fetching events:', error);
@@ -73,33 +80,59 @@ const Events: React.FC = () => {
         fetchEvents();
     }, []);
 
-    // 🔍 FILTER EVENTS
-    const filteredEvents = events.filter(event => {
-        const dateObj = new Date(event.date);
+    // 🔍 FILTER EVENTS - Memoized để tránh tính toán lại mỗi lần render
+    // Sử dụng debouncedSearch thay vì search để giảm số lần filter
+    const filteredEvents = useMemo(() => {
+        const now = new Date();
+        const filtered = events.filter(event => {
+            const dateObj = new Date(event.date);
 
-        const matchesSearch =
-            event.title.toLowerCase().includes(search.toLowerCase()) ||
-            event.description.toLowerCase().includes(search.toLowerCase()) ||
-            event.location.toLowerCase().includes(search.toLowerCase());
+            const matchesSearch =
+                event.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                event.description.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                event.location.toLowerCase().includes(debouncedSearch.toLowerCase());
 
-        const matchesCategory =
-            categoryFilter === 'All Categories' || event.category === categoryFilter;
+            const matchesCategory =
+                categoryFilter === 'All Categories' || event.category === categoryFilter;
 
-        const matchesType =
-            typeFilter === 'All Types' ||
-            (typeFilter === 'Free' && event.price === 0) ||
-            (typeFilter === 'Paid' && event.price > 0);
+            const matchesType =
+                typeFilter === 'All Types' ||
+                (typeFilter === 'Free' && event.price === 0) ||
+                (typeFilter === 'Paid' && event.price > 0);
 
-        const matchesUpcoming = isWithinRange(dateObj, upcomingFilter);
+            let matchesDate = false;
+            if (upcomingFilter === 'Past Event') {
+                matchesDate = dateObj < now;
+            } else {
+                matchesDate = isWithinRange(dateObj, upcomingFilter);
+            }
 
-        return matchesSearch && matchesCategory && matchesType && matchesUpcoming;
-    });
+            return matchesSearch && matchesCategory && matchesType && matchesDate;
+        });
 
-    // Pagination logic
+        // Sắp xếp theo date: upcoming events từ sớm đến muộn, past events từ muộn đến sớm
+        return filtered.sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            
+            if (upcomingFilter === 'Past Event') {
+                // Past events: sắp xếp từ muộn nhất đến sớm nhất
+                return dateB - dateA;
+            } else {
+                // Upcoming events: sắp xếp từ sớm nhất đến muộn nhất
+                return dateA - dateB;
+            }
+        });
+    }, [events, debouncedSearch, categoryFilter, typeFilter, upcomingFilter]);
+
+    // Pagination logic - Memoized
+    const paginatedEvents = useMemo(() => {
+        const indexOfLastEvent = currentPage * eventsPerPage;
+        const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
+        return filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
+    }, [filteredEvents, currentPage, eventsPerPage]);
+
     const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
-    const indexOfLastEvent = currentPage * eventsPerPage;
-    const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
-    const paginatedEvents = filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -147,7 +180,7 @@ const Events: React.FC = () => {
                         onSelect={setCategoryFilter}
                     />
                     <FilterDropdown
-                        label="Upcoming"
+                        label="Date"
                         options={upcomingFilters}
                         selectedValue={upcomingFilter}
                         onSelect={setUpcomingFilter}
@@ -173,7 +206,7 @@ const Events: React.FC = () => {
                     ) : (
                         <div className="space-y-4">
                             {paginatedEvents.map(event => (
-                                <RegisteredEventCard key={event._id} event={event}/>
+                                <RegisteredEventCard key={event._id} event={event} showTicketCode={false}/>
                             ))}
                         </div>
                     )}

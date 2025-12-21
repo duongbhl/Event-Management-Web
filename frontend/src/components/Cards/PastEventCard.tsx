@@ -1,39 +1,45 @@
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
 import { CalendarIcon, Clock, MapPin, CheckCircle } from "lucide-react";
 import type { EventDataProp } from "../Interfaces/EventDataProp";
 import { Button } from "../ui/button";
 import { dateToString } from "@/lib/utils";
-import axios from "axios";
-import { useEffect, useState } from "react";
+import apiClient from "@/lib/axios";
+import { API_ENDPOINTS } from "@/config/api";
 
 interface Props {
     event: EventDataProp;
 }
 
-export const PastEventCard: React.FC<Props> = ({ event }) => {
+export const PastEventCard: React.FC<Props> = React.memo(({ event }) => {
     const navigate = useNavigate();
 
     const [hasTicket, setHasTicket] = useState(false);
 
-    const viewDetailsHandle = () => {
+    const viewDetailsHandle = useCallback(() => {
         navigate(`/view-details/${event._id}`);
-    };
+    }, [navigate, event._id]);
 
     // ================= CHECK TICKET (ATTENDED) =================
     useEffect(() => {
         const checkTicket = async () => {
             try {
-                const token = localStorage.getItem("token");
+                const res = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS, {
+                    params: { eventId: event._id },
+                });
 
-                const res = await axios.get(
-                    "http://localhost:5000/api/user/tickets",
-                    {
-                        params: { eventId: event._id },
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
-
-                setHasTicket(Boolean(res.data.data));
+                const tickets = res.data.data;
+                // Kiểm tra đúng: tickets phải là array và có ít nhất 1 phần tử
+                const hasValidTicket = Array.isArray(tickets) && tickets.length > 0;
+                
+                // Log để debug
+                console.log(`[PastEventCard] Event ${event._id}:`, {
+                    ticketsCount: Array.isArray(tickets) ? tickets.length : 0,
+                    hasTicket: hasValidTicket,
+                    eventTitle: event.title
+                });
+                
+                setHasTicket(hasValidTicket);
             } catch (err) {
                 console.error("Check ticket error:", err);
                 setHasTicket(false);
@@ -45,24 +51,26 @@ export const PastEventCard: React.FC<Props> = ({ event }) => {
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-md mb-6 overflow-hidden relative">
+            {/* Attended Badge - Top Right */}
+            {hasTicket && (
+                <div className="absolute top-4 right-4 px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700 flex items-center z-10 shadow-sm">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    Attended
+                </div>
+            )}
+            
             <div className="flex">
-                {/* IMAGE + ATTENDED */}
+                {/* IMAGE */}
                 <div className="w-1/4 bg-gray-100 relative overflow-hidden flex items-center justify-center">
                     {event.image ? (
                         <img
                             src={event.image}
                             alt={event.title}
                             className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
                         />
                     ) : (
                         <div className="text-gray-400 text-sm">No Image</div>
-                    )}
-
-                    {hasTicket && (
-                        <div className="relative z-10 bg-white/90 px-3 py-1 rounded-full flex items-center text-green-600 font-semibold text-sm shadow">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Attended
-                        </div>
                     )}
                 </div>
 
@@ -125,4 +133,6 @@ export const PastEventCard: React.FC<Props> = ({ event }) => {
             </div>
         </div>
     );
-};
+});
+
+PastEventCard.displayName = 'PastEventCard';

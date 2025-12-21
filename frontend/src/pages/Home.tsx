@@ -7,7 +7,8 @@ import {
     ChevronRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 import type { QuickAccessCardProps } from '@/components/Interfaces/QuickAccessCardProps';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
 import EventCarouselCard from '@/components/Cards/EventCarouselCard';
@@ -92,13 +93,7 @@ const Home: React.FC = () => {
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.get(
-                    'http://localhost:5000/api/user/allEvents/approved',
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
+                const res = await apiClient.get(API_ENDPOINTS.USER.ALL_EVENTS_APPROVED);
                 setEvents(res.data.data || []);
             } catch (error) {
                 console.error('Error fetching events:', error);
@@ -254,10 +249,10 @@ const Home: React.FC = () => {
                         />
                         <QuickAccessCard
                             icon={Users}
-                            title="My Registrations"
-                            description="Manage your event registrations and tickets."
-                            buttonText="View Registrations"
-                            to="/registrations"
+                            title="My Events"
+                            description="View your registered events, past events, and events you created."
+                            buttonText="View My Events"
+                            to="/myevent"
                         />
                         <QuickAccessCard
                             icon={Search}

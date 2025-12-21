@@ -12,6 +12,6 @@ adminRouter.use(protect, authorize("admin"));
 adminRouter.get("/events", getAllEvents);//xong
 
 //duyet hoac tu choi event
-adminRouter.put("/approve-event/:id", approveEvent);//xong
+adminRouter.put("/events/:id/approve", approveEvent);//xong
 
-adminRouter.put("/reject-event/:id",rejectEvent);//xong
+adminRouter.put("/events/:id/reject", rejectEvent);//xong

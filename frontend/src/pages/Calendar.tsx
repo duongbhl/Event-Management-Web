@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { EventDataProp } from "@/components/Interfaces/EventDataProp";
 import { useNavigate } from "react-router";
-import axios from "axios";
+import apiClient from "@/lib/axios";
+import { API_ENDPOINTS } from "@/config/api";
 
 
 /* ============================================================
@@ -253,16 +254,7 @@ const Calendar: React.FC = () => {
     useEffect(() => {
         const fetchRegisteredEvents = async () => {
             try {
-                const token = localStorage.getItem("token");
-
-                const res = await axios.get(
-                    "http://localhost:5000/api/user/my-tickets",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
+                const res = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS);
 
                 const now = new Date();
 

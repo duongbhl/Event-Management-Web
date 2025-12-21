@@ -1,49 +1,85 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, MapPin, Calendar as CalendarIcon, User, Tag, Share2, Heart, ChevronLeft } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
 import { toast } from "react-toastify";
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { QRCodeModal } from '@/components/QRCodeModal';
 
 
 
 const ViewDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const [event, setEvent] = useState<EventDataProp | null>(null);
     const [loading, setLoading] = useState(true);
     const [hasTicket, setHasTicket] = useState(false);
     const [ticketId, setTicketId] = useState<string | null>(null);
     const [confirmRegister, setConfirmRegister] = useState(false);
     const [confirmCancel, setConfirmCancel] = useState(false);
+    const [showQRModal, setShowQRModal] = useState(false);
+    const [qrTicketId, setQRTicketId] = useState<string | null>(null);
+    const [isOrganizer, setIsOrganizer] = useState(false);
 
 
 
+
+    // Check for QR modal state from navigation
+    useEffect(() => {
+        const locationState = location.state as any;
+        if (locationState?.showQR && locationState?.ticketId) {
+            setShowQRModal(true);
+            setQRTicketId(locationState.ticketId);
+            // Clear state to prevent showing again on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
 
     // Fetch event details and ticket status
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const token = localStorage.getItem("token");
-
                 // 1. Fetch event
-                const eventRes = await axios.get(
-                    `http://localhost:5000/api/user/event/${id}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                setEvent(eventRes.data.data);
+                const eventRes = await apiClient.get(API_ENDPOINTS.USER.EVENT(id!));
+                const eventData = eventRes.data.data;
+                setEvent(eventData);
+
+                // Check if current user is the organizer
+                let userIsOrganizer = false;
+                const userData = localStorage.getItem('user');
+                if (userData) {
+                    try {
+                        const user = JSON.parse(userData);
+                        // Check if user is organizer (compare IDs)
+                        const eventOrganizerId = (eventData as any).organizerId?._id || (eventData as any).organizerId;
+                        const currentUserId = user._id || user.id;
+                        userIsOrganizer = eventOrganizerId && currentUserId && eventOrganizerId.toString() === currentUserId.toString();
+                        setIsOrganizer(userIsOrganizer);
+                    } catch (error) {
+                        console.error('Error parsing user data:', error);
+                        setIsOrganizer(false);
+                    }
+                } else {
+                    setIsOrganizer(false);
+                }
 
                 // 2. Check ticket
-                const ticketRes = await axios.get(
-                    "http://localhost:5000/api/user/my-tickets",
-                    {
-                        params: { eventId: id },
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
+                const ticketRes = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS, {
+                    params: { eventId: id },
+                });
 
                 const tickets = ticketRes.data.data;
+
+                // Log để debug
+                console.log(`[ViewDetails] Event ${id}:`, {
+                    ticketsCount: Array.isArray(tickets) ? tickets.length : 0,
+                    tickets: tickets,
+                    eventTitle: eventData?.title,
+                    isOrganizer: userIsOrganizer
+                });
 
                 if (Array.isArray(tickets) && tickets.length > 0) {
                     setHasTicket(true);
@@ -88,19 +124,18 @@ const ViewDetails: React.FC = () => {
 
 
         try {
-            const token = localStorage.getItem("token");
-
-            const res = await axios.post(
-                "http://localhost:5000/api/user/tickets",
-                { eventId: event._id, quantity: 1 },
-                { headers: { Authorization: `Bearer ${token}` } }
+            const res = await apiClient.post(
+                API_ENDPOINTS.USER.TICKETS,
+                { eventId: event._id, quantity: 1 }
             );
 
             setHasTicket(true);
             setTicketId(res.data.data._id);
 
-            toast.success("🎉 Registration successful!");
-            navigate(`/ticket/${res.data.data._id}`);
+            toast.success("Registration successful!");
+            // Show QR modal instead of navigating away
+            setShowQRModal(true);
+            setQRTicketId(res.data.data._id);
         } catch (error: any) {
             console.error("Register error:", error);
             toast.error(
@@ -127,17 +162,7 @@ const ViewDetails: React.FC = () => {
     const handleCancelTicket = async () => {
         if (!ticketId) return;
         try {
-            const token = localStorage.getItem("token");
-
-            await axios.put(
-                `http://localhost:5000/api/user/tickets/${ticketId}/cancel`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            await apiClient.put(API_ENDPOINTS.USER.CANCEL_TICKET(ticketId));
 
             setHasTicket(false);
             setTicketId(null);
@@ -241,7 +266,22 @@ const ViewDetails: React.FC = () => {
                             <div className="sticky top-20 bg-gray-50 border border-gray-300 rounded-lg p-6 shadow-md">
                                 <h3 className="text-xl font-bold mb-4 text-gray-900">Get Your Ticket</h3>
 
-                                {hasTicket ? (
+                                {isOrganizer ? (
+                                    <>
+                                        <p className="text-blue-600 font-semibold mb-3">
+                                            You are the organizer of this event.
+                                        </p>
+                                        <p className="text-sm text-gray-600 mb-4">
+                                            You don't need to register. You can manage this event from "Created By Me" section.
+                                        </p>
+                                        <button
+                                            onClick={() => navigate(`/manage-event/${event._id}`)}
+                                            className="w-full py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+                                        >
+                                            Manage Event
+                                        </button>
+                                    </>
+                                ) : hasTicket ? (
                                     <>
                                         <p className="text-green-600 font-semibold mb-3">
                                             You are already registered!
@@ -262,16 +302,44 @@ const ViewDetails: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <p className="text-gray-700 mb-4">
-                                            Click below to register for this event.
-                                        </p>
-                                        <button
-                                            onClick={handleBuyTicket}
-                                            className="w-full py-3 text-lg font-bold text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition"
-                                        >
-                                            {event.price === 0 ? "Register Now" : "Buy Ticket"}
-                                        </button>
-
+                                        {(() => {
+                                            const eventDate = new Date(event.date);
+                                            const now = new Date();
+                                            const isPastEvent = eventDate < now;
+                                            
+                                            if (isPastEvent) {
+                                                return (
+                                                    <>
+                                                        <p className="text-red-600 font-semibold mb-3">
+                                                            This event has already ended.
+                                                        </p>
+                                                        <p className="text-sm text-gray-600 mb-4">
+                                                            Registration is no longer available for past events.
+                                                        </p>
+                                                        <button
+                                                            disabled
+                                                            className="w-full py-3 text-lg font-bold text-gray-400 bg-gray-300 rounded-lg cursor-not-allowed"
+                                                        >
+                                                            Event Ended
+                                                        </button>
+                                                    </>
+                                                );
+                                            }
+                                            
+                                            return (
+                                                <>
+                                                    <p className="text-gray-700 mb-4">
+                                                        Click below to register for this event.
+                                                    </p>
+                                                    <button
+                                                        onClick={handleBuyTicket}
+                                                        className="w-full py-3 text-lg font-bold text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition"
+                                                    >
+                                                        {event.price === 0 ? "Register Now" : "Buy Ticket"}
+                                                    </button>
+                                                </>
+                                            );
+                                        })()}
                                     </>
                                 )}
                                 <ConfirmDialog
@@ -298,7 +366,18 @@ const ViewDetails: React.FC = () => {
                                     }}
                                 />
 
-
+                                {/* QR Code Modal */}
+                                {qrTicketId && (
+                                    <QRCodeModal
+                                        isOpen={showQRModal}
+                                        onClose={() => {
+                                            setShowQRModal(false);
+                                            setQRTicketId(null);
+                                        }}
+                                        ticketId={qrTicketId}
+                                        eventTitle={event?.title}
+                                    />
+                                )}
 
                             </div>
                         </div>

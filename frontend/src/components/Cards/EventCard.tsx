@@ -1,10 +1,11 @@
+import React from "react";
 import { Clock, MapPin } from "lucide-react";
 import { dateToString, formatDate } from "@/lib/utils";
 import { useNavigate } from "react-router";
 import type { EventDataProp } from "../Interfaces/EventDataProp";
 import { Button } from "../ui/button";
 
-export const EventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
+export const EventCard: React.FC<{ event: EventDataProp }> = React.memo(({ event }) => {
   const navigate = useNavigate();
 
   const viewDetailsHandle = () => {
@@ -12,6 +13,9 @@ export const EventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
   };
 
   const date = formatDate(dateToString(event.date));
+  const eventDate = new Date(event.date);
+  const now = new Date();
+  const isPastEvent = eventDate < now;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-full hover:shadow-md transition">
@@ -23,6 +27,7 @@ export const EventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
             src={event.image}
             alt={event.title}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400 text-sm">
@@ -80,9 +85,18 @@ export const EventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
 
         {/* Action */}
         <div className="pt-4">
+          {isPastEvent && (
+            <div className="mb-2 px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg text-center">
+              Event Ended
+            </div>
+          )}
           <Button
             onClick={viewDetailsHandle}
-            className="w-full py-2 text-sm font-medium bg-gray-900 hover:bg-gray-700 transition"
+            className={`w-full py-2 text-sm font-medium transition ${
+              isPastEvent 
+                ? 'bg-gray-400 hover:bg-gray-400 cursor-pointer' 
+                : 'bg-gray-900 hover:bg-gray-700'
+            }`}
           >
             View Details
           </Button>
@@ -90,5 +104,7 @@ export const EventCard: React.FC<{ event: EventDataProp }> = ({ event }) => {
       </div>
     </div>
   );
-};
+});
+
+EventCard.displayName = 'EventCard';
 export default EventCard;

@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
+import cloudinary from '../config/cloudinary';
 import { Request } from 'express';
 
 // Lưu file trong memory

@@ -2,8 +2,9 @@ import { CreatedEventCard } from '@/components/Cards/CreatedEventCard';
 import { PastEventCard } from '@/components/Cards/PastEventCard';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
-import React, { useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useMemo } from 'react';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 
 // Định nghĩa kiểu dữ liệu cho sự kiện
 interface TicketData {
@@ -59,46 +60,52 @@ const MyEvents: React.FC = () => {
     useEffect(() => {
         const fetchMyEvents = async () => {
             try {
-                const token = localStorage.getItem('token');
-
                 // Fetch created events
-                const createdRes = await axios.get('http://localhost:5000/api/user/events', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const createdRes = await apiClient.get(API_ENDPOINTS.USER.EVENTS);
 
                 // Fetch registered events (tickets)
-                const ticketsRes = await axios.get('http://localhost:5000/api/user/my-tickets', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const ticketsRes = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS);
 
                 const now = new Date();
                 const allCreatedEvents: EventDataProp[] = createdRes.data.data || [];
                 const allTickets: TicketData[] = ticketsRes.data.data || [];
 
-                // Registered events = upcoming events from tickets
-                const upcomingRegistered = allTickets
-                    .filter((t: TicketData) => t.eventId && new Date(t.eventId.date) >= now)
-                    .map((t: TicketData) => t.eventId);
+                // Option 1: Lấy danh sách event IDs mà user là organizer để filter ra
+                const createdEventIds = new Set(allCreatedEvents.map((e: EventDataProp) => e._id));
 
-                // Past events = past tickets + past created events
-                const pastTickets = allTickets
-                    .filter((t: TicketData) => t.eventId && new Date(t.eventId.date) < now)
+                // Registered events = upcoming events from tickets with ticketId
+                // Loại bỏ events mà user là organizer (ưu tiên hiển thị trong "Created By Me")
+                const upcomingRegistered = allTickets
+                    .filter((t: TicketData) => {
+                        return t.eventId && 
+                               new Date(t.eventId.date) >= now &&
+                               !createdEventIds.has(t.eventId._id); // Loại bỏ events user là organizer
+                    })
                     .map((t: TicketData) => ({
                         ...t.eventId,
+                        ticketId: t._id
+                    }));
+
+                // Past events = chỉ những events mà user đã đăng ký (có ticket) và đã qua
+                // Loại bỏ events mà user là organizer (ưu tiên hiển thị trong "Created By Me")
+                const pastTickets = allTickets
+                    .filter((t: TicketData) => {
+                        // Chỉ lấy tickets có status "booked", event đã qua, và user không phải organizer
+                        return t.status === 'booked' && 
+                               t.eventId && 
+                               new Date(t.eventId.date) < now &&
+                               !createdEventIds.has(t.eventId._id); // Loại bỏ events user là organizer
+                    })
+                    .map((t: TicketData) => ({
+                        ...t.eventId,
+                        ticketId: t._id, // Thêm ticketId để có thể xem ticket sau này
                         isAttended: true,
                         hasSubmittedFeedback: false
                     }));
 
-                const pastCreated = allCreatedEvents
-                    .filter((e: EventDataProp) => new Date(e.date) < now)
-                    .map((e: EventDataProp) => ({
-                        ...e,
-                        isAttended: false,
-                        hasSubmittedFeedback: false
-                    }));
-
                 setRegisteredEvents(upcomingRegistered);
-                setPastEvents([...pastTickets, ...pastCreated]);
+                // Chỉ hiển thị past events mà user đã đăng ký (có ticket)
+                setPastEvents(pastTickets);
                 setCreatedEvents(allCreatedEvents);
 
             } catch (error) {
@@ -122,12 +129,7 @@ const MyEvents: React.FC = () => {
                         <p className="text-gray-600">You have not registered for any upcoming events.</p>
                     ) : (
                         <section>
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-semibold text-gray-800">Upcoming Registered Events</h2>
-                                <button className="text-sm font-medium text-orange-600 hover:text-orange-800">
-                                    View All Registrations
-                                </button>
-                            </div>
+                            <h2 className="text-xl font-semibold text-gray-800 mb-4">Upcoming Registered Events</h2>
                             {registeredEvents.map(event => (<RegisteredEventCard key={event._id} event={event} />))}
                         </section>
                     )

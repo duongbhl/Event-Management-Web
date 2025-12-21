@@ -1,7 +1,8 @@
 import React from 'react';
 import { Mail, Lock, User} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 import { useToast } from '@/hooks/useToast';
 
 const Register: React.FC = () => {
@@ -66,7 +67,7 @@ const Register: React.FC = () => {
 
         try {
             // API call to register user
-            const response = await axios.post('http://localhost:5000/api/auth/register', {
+            const response = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, {
                 username: formData.fullName,
                 email: formData.email,
                 password: formData.password,

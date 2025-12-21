@@ -12,4 +12,5 @@ export interface EventDataProp {
     category: 'Arts & Science' |'Engineering'| 'Agriculture' |'Pharmacy'|'Physiotherapy'|'Allied Health Sciences'|'Hotel Management'| 'Business'
     hasSubmittedFeedback?: boolean;
     image?: string;
+    ticketId?: string; // Optional ticket ID for registered events
 }

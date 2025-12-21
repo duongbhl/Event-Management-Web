@@ -16,7 +16,8 @@ import {
     LayoutDashboard
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 import type { AdminEventData } from '@/components/Interfaces/AdminEventData';
 import { useToast } from '@/hooks/useToast';
 
@@ -140,12 +141,7 @@ const AdminDashboard: React.FC = () => {
         setError(null);
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/admin/events', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const response = await apiClient.get(API_ENDPOINTS.ADMIN.EVENTS);
 
             setEvents(response.data.data || []);
         } catch (err: any) {
@@ -182,16 +178,7 @@ const AdminDashboard: React.FC = () => {
     const executeApprove = async (eventId: string) => {
         setActionLoading(eventId);
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(
-                `http://localhost:5000/api/admin/approve-event/${eventId}`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
+            await apiClient.put(API_ENDPOINTS.ADMIN.APPROVE_EVENT(eventId));
 
             // Update local state
             setEvents(prev => 
@@ -214,16 +201,7 @@ const AdminDashboard: React.FC = () => {
     const executeReject = async (eventId: string) => {
         setActionLoading(eventId);
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(
-                `http://localhost:5000/api/admin/reject-event/${eventId}`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
+            await apiClient.put(API_ENDPOINTS.ADMIN.REJECT_EVENT(eventId));
 
             // Update local state
             setEvents(prev => 

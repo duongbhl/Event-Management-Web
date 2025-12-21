@@ -1,4 +1,5 @@
-import axios from "axios";
+import apiClient from "@/lib/axios";
+import { API_ENDPOINTS } from "@/config/api";
 import React, { useEffect, useState } from "react";
 import {
     Calendar,
@@ -88,7 +89,11 @@ const AddEvent: React.FC = () => {
         setError(null);
         setMessage(null);
 
-        if (!title || !date || !time || !locationName || !expectedAttendees || !price) {
+        // Validate required fields - check for empty strings, not falsy values (0 is valid)
+        if (!title.trim() || !date || !time || !locationName.trim() || 
+            expectedAttendees === "" || expectedAttendees === null || expectedAttendees === undefined ||
+            price === "" || price === null || price === undefined ||
+            !description.trim()) {
             setError("All required fields must be filled");
             return;
         }
@@ -109,17 +114,16 @@ const AddEvent: React.FC = () => {
             if (selectedImage) formData.append("image", selectedImage);
 
             const url = isEditMode
-                ? `http://localhost:5000/api/user/event/${editState?._id}`
-                : "http://localhost:5000/api/user/event";
+                ? API_ENDPOINTS.USER.UPDATE_EVENT(editState!._id)
+                : API_ENDPOINTS.USER.CREATE_EVENT;
 
             const method = isEditMode ? "put" : "post";
 
-            await axios({
+            await apiClient({
                 method,
                 url,
                 data: formData,
                 headers: {
-                    Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data",
                 },
             });

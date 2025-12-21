@@ -1,7 +1,8 @@
 import React from 'react';
 import { Mail, Lock, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '@/lib/axios';
+import { API_ENDPOINTS } from '@/config/api';
 import { useToast } from '@/hooks/useToast';
 
 const Login: React.FC = () => {
@@ -18,7 +19,7 @@ const Login: React.FC = () => {
         setError(null);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/login', {
+            const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, {
                 email,
                 password
             });
