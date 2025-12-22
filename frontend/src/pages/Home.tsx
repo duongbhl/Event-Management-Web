@@ -90,6 +90,8 @@ const Home: React.FC = () => {
     // Fetch approved events
     // =====================
     useEffect(() => {
+        const abortController = new AbortController();
+        
         const fetchEvents = async () => {
             setLoading(true);
             try {
@@ -99,16 +101,29 @@ const Home: React.FC = () => {
                     ? API_ENDPOINTS.USER.ALL_EVENTS_APPROVED
                     : '/api/user/allEvents/everybodyApproved';
 
-                const res = await apiClient.get(endpoint);
-                setEvents(res.data.data || []);
-            } catch (error) {
-                console.error('Error fetching events:', error);
+                const res = await apiClient.get(endpoint, {
+                    signal: abortController.signal
+                });
+                
+                if (!abortController.signal.aborted) {
+                    setEvents(res.data.data || []);
+                }
+            } catch (error: any) {
+                if (error.name !== 'CanceledError' && !abortController.signal.aborted) {
+                    console.error('Error fetching events:', error);
+                }
             } finally {
-                setLoading(false);
+                if (!abortController.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
 
         fetchEvents();
+        
+        return () => {
+            abortController.abort();
+        };
     }, []);
 
 

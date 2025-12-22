@@ -73,6 +73,8 @@ const Events: React.FC = () => {
 
     // Fetch events from API
     useEffect(() => {
+        const abortController = new AbortController();
+        
         const fetchEvents = async () => {
             try {
                 const token = localStorage.getItem('accessToken');
@@ -81,14 +83,25 @@ const Events: React.FC = () => {
                     ? API_ENDPOINTS.USER.ALL_EVENTS_APPROVED
                     : '/api/user/allEvents/everybodyApproved';
 
-                const res = await apiClient.get(endpoint);
-                setEvents(res.data.data || []);
-            } catch (error) {
-                console.error('Error fetching events:', error);
+                const res = await apiClient.get(endpoint, {
+                    signal: abortController.signal
+                });
+                
+                if (!abortController.signal.aborted) {
+                    setEvents(res.data.data || []);
+                }
+            } catch (error: any) {
+                if (error.name !== 'CanceledError' && !abortController.signal.aborted) {
+                    console.error('Error fetching events:', error);
+                }
             }
         };
 
         fetchEvents();
+        
+        return () => {
+            abortController.abort();
+        };
     }, []);
 
 

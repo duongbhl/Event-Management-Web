@@ -252,9 +252,15 @@ const Calendar: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const abortController = new AbortController();
+        
         const fetchRegisteredEvents = async () => {
             try {
-                const res = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS);
+                const res = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS, {
+                    signal: abortController.signal
+                });
+
+                if (abortController.signal.aborted) return;
 
                 const now = new Date();
 
@@ -266,15 +272,25 @@ const Calendar: React.FC = () => {
                             ev && new Date(ev.date) > now
                     );
 
-                setEvents(registeredEvents);
-            } catch (error) {
-                console.error("Fetch registered events error:", error);
+                if (!abortController.signal.aborted) {
+                    setEvents(registeredEvents);
+                }
+            } catch (error: any) {
+                if (error.name !== 'CanceledError' && !abortController.signal.aborted) {
+                    console.error("Fetch registered events error:", error);
+                }
             } finally {
-                setLoading(false);
+                if (!abortController.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
 
         fetchRegisteredEvents();
+        
+        return () => {
+            abortController.abort();
+        };
     }, []);
 
     if (loading) {

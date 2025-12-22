@@ -58,13 +58,21 @@ const MyEvents: React.FC = () => {
     const [createdEvents, setCreatedEvents] = React.useState<EventDataProp[]>([]);
 
     useEffect(() => {
+        const abortController = new AbortController();
+        
         const fetchMyEvents = async () => {
             try {
                 // Fetch created events
-                const createdRes = await apiClient.get(API_ENDPOINTS.USER.EVENTS);
+                const createdRes = await apiClient.get(API_ENDPOINTS.USER.EVENTS, {
+                    signal: abortController.signal
+                });
 
                 // Fetch registered events (tickets)
-                const ticketsRes = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS);
+                const ticketsRes = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS, {
+                    signal: abortController.signal
+                });
+
+                if (abortController.signal.aborted) return;
 
                 const now = new Date();
                 const allCreatedEvents: EventDataProp[] = createdRes.data.data || [];
@@ -103,16 +111,24 @@ const MyEvents: React.FC = () => {
                         hasSubmittedFeedback: false
                     }));
 
-                setRegisteredEvents(upcomingRegistered);
-                // Chỉ hiển thị past events mà user đã đăng ký (có ticket)
-                setPastEvents(pastTickets);
-                setCreatedEvents(allCreatedEvents);
+                if (!abortController.signal.aborted) {
+                    setRegisteredEvents(upcomingRegistered);
+                    // Chỉ hiển thị past events mà user đã đăng ký (có ticket)
+                    setPastEvents(pastTickets);
+                    setCreatedEvents(allCreatedEvents);
+                }
 
-            } catch (error) {
-                console.error('Error fetching events:', error);
+            } catch (error: any) {
+                if (error.name !== 'CanceledError' && !abortController.signal.aborted) {
+                    console.error('Error fetching events:', error);
+                }
             }
         };
         fetchMyEvents();
+        
+        return () => {
+            abortController.abort();
+        };
     }, []);
 
     return (
