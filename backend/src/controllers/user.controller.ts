@@ -271,6 +271,19 @@ export const getEvents = async (req: any, res: Response) => {
   }
 };
 
+
+//lay event cua tat ca moi nguoi ke ca minh(approved)
+export const getAllEvents = async (req: any, res: Response) => {
+  try {
+    const events = await Event.find({status:"approved"});
+    res.status(200).json({ data: events });
+  } catch (error) {
+    console.error("Error in getAllEvents:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+
 //lay chi tiet event theo id
 export const getEventById = async (req: Request, res: Response) => {
   try {

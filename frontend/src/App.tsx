@@ -21,6 +21,7 @@ import Checkout from './pages/Checkout';
 import Payment from './pages/Payment';
 import TicketQR from './pages/TicketQR';
 import ManageEvent from './pages/ManageEvent';
+import AdminViewDetails from './pages/admin/AdminViewDetails';
 
 // Layout wrapper to conditionally show Navbar/Footer
 function AppLayout() {
@@ -52,6 +53,8 @@ function AppLayout() {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/events/:id" element={<AdminViewDetails />} />
+
       </Routes>
       {!isAdminRoute && <Footer />}
     </>

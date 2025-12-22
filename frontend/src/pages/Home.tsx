@@ -93,7 +93,13 @@ const Home: React.FC = () => {
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const res = await apiClient.get(API_ENDPOINTS.USER.ALL_EVENTS_APPROVED);
+                const token = localStorage.getItem('accessToken');
+
+                const endpoint = token
+                    ? API_ENDPOINTS.USER.ALL_EVENTS_APPROVED
+                    : '/api/user/allEvents/everybodyApproved';
+
+                const res = await apiClient.get(endpoint);
                 setEvents(res.data.data || []);
             } catch (error) {
                 console.error('Error fetching events:', error);
@@ -104,6 +110,7 @@ const Home: React.FC = () => {
 
         fetchEvents();
     }, []);
+
 
     // =====================
     // Upcoming + Category filter

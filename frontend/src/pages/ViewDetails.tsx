@@ -23,6 +23,8 @@ const ViewDetails: React.FC = () => {
     const [showQRModal, setShowQRModal] = useState(false);
     const [qrTicketId, setQRTicketId] = useState<string | null>(null);
     const [isOrganizer, setIsOrganizer] = useState(false);
+    const isLoggedIn = Boolean(localStorage.getItem('user')||sessionStorage.getItem('user'));
+
 
 
 
@@ -42,48 +44,68 @@ const ViewDetails: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Fetch event
-                const eventRes = await apiClient.get(API_ENDPOINTS.USER.EVENT(id!));
+                setLoading(true);
+
+                // =====================
+                // 1. Fetch event (login / public)
+                // =====================
+                const eventRes = await apiClient.get(
+                    isLoggedIn
+                        ? API_ENDPOINTS.USER.EVENT(id!)
+                        : API_ENDPOINTS.USER.PUBLIC_EVENT(id!)
+                );
+
                 const eventData = eventRes.data.data;
                 setEvent(eventData);
 
-                // Check if current user is the organizer
-                let userIsOrganizer = false;
-                const userData = localStorage.getItem('user');
-                if (userData) {
-                    try {
-                        const user = JSON.parse(userData);
-                        // Check if user is organizer (compare IDs)
-                        const eventOrganizerId = (eventData as any).organizerId?._id || (eventData as any).organizerId;
-                        const currentUserId = user._id || user.id;
-                        userIsOrganizer = eventOrganizerId && currentUserId && eventOrganizerId.toString() === currentUserId.toString();
-                        setIsOrganizer(userIsOrganizer);
-                    } catch (error) {
-                        console.error('Error parsing user data:', error);
-                        setIsOrganizer(false);
+                // =====================
+                // 2. Organizer check (CHỈ khi login)
+                // =====================
+                if (isLoggedIn) {
+                    let userIsOrganizer = false;
+                    const userData = localStorage.getItem('user');
+
+                    if (userData) {
+                        try {
+                            const user = JSON.parse(userData);
+                            const eventOrganizerId =
+                                (eventData as any).organizerId?._id ||
+                                (eventData as any).organizerId;
+
+                            const currentUserId = user._id || user.id;
+
+                            userIsOrganizer =
+                                eventOrganizerId &&
+                                currentUserId &&
+                                eventOrganizerId.toString() === currentUserId.toString();
+                        } catch {
+                            userIsOrganizer = false;
+                        }
                     }
+
+                    setIsOrganizer(userIsOrganizer);
                 } else {
                     setIsOrganizer(false);
                 }
 
-                // 2. Check ticket
-                const ticketRes = await apiClient.get(API_ENDPOINTS.USER.MY_TICKETS, {
-                    params: { eventId: id },
-                });
+                // =====================
+                // 3. Ticket check (CHỈ khi login)
+                // =====================
+                if (isLoggedIn) {
+                    const ticketRes = await apiClient.get(
+                        API_ENDPOINTS.USER.MY_TICKETS,
+                        { params: { eventId: id } }
+                    );
 
-                const tickets = ticketRes.data.data;
+                    const tickets = ticketRes.data.data;
 
-                // Log để debug
-                console.log(`[ViewDetails] Event ${id}:`, {
-                    ticketsCount: Array.isArray(tickets) ? tickets.length : 0,
-                    tickets: tickets,
-                    eventTitle: eventData?.title,
-                    isOrganizer: userIsOrganizer
-                });
-
-                if (Array.isArray(tickets) && tickets.length > 0) {
-                    setHasTicket(true);
-                    setTicketId(tickets[0]._id);
+                    if (Array.isArray(tickets) && tickets.length > 0) {
+                        setHasTicket(true);
+                        setTicketId(tickets[0]._id);
+                    } else {
+                        setHasTicket(false);
+                        setTicketId(null);
+                    }
                 } else {
                     setHasTicket(false);
                     setTicketId(null);
@@ -120,9 +142,6 @@ const ViewDetails: React.FC = () => {
     //dki ve tham gia su kien
     const handleRegister = async () => {
         if (!event) return;
-
-
-
         try {
             const res = await apiClient.post(
                 API_ENDPOINTS.USER.TICKETS,
@@ -148,12 +167,21 @@ const ViewDetails: React.FC = () => {
     const handleBuyTicket = () => {
         if (!event) return;
 
+        if (!isLoggedIn) {
+            toast.info("Please login to register for this event");
+            navigate('/login', {
+                state: { redirectTo: `/events/${event._id}` }
+            });
+            return;
+        }
+
         if (event.price === 0) {
             setConfirmRegister(true);
         } else {
             navigate(`/checkout/${event._id}`);
         }
     };
+
 
 
 
@@ -306,7 +334,7 @@ const ViewDetails: React.FC = () => {
                                             const eventDate = new Date(event.date);
                                             const now = new Date();
                                             const isPastEvent = eventDate < now;
-                                            
+
                                             if (isPastEvent) {
                                                 return (
                                                     <>
@@ -325,7 +353,7 @@ const ViewDetails: React.FC = () => {
                                                     </>
                                                 );
                                             }
-                                            
+
                                             return (
                                                 <>
                                                     <p className="text-gray-700 mb-4">

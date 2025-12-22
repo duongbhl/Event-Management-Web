@@ -18,9 +18,9 @@ const upcomingFilters = ['Upcoming', 'Today', 'Tomorrow', 'This Week', 'This Mon
 const typeFilters = ['Free', 'Paid'];
 
 
-    
+
 // ============= Dropdown Component ===============
-const FilterDropdown: React.FC<FilterDropdownProp> = ({ options, selectedValue, onSelect}) => (
+const FilterDropdown: React.FC<FilterDropdownProp> = ({ options, selectedValue, onSelect }) => (
     <div className="relative w-full">
         <select
             className="w-full appearance-none block bg-white border border-gray-300 py-3 pl-4 pr-10 text-base rounded-lg 
@@ -47,6 +47,7 @@ const Events: React.FC = () => {
     const [typeFilter, setTypeFilter] = React.useState('All Types');
     const [viewType, setViewType] = React.useState<'grid' | 'list'>('grid');
 
+
     // Pagination
     const [currentPage, setCurrentPage] = React.useState(1);
     const eventsPerPage = 6;
@@ -67,18 +68,29 @@ const Events: React.FC = () => {
         setCurrentPage(1);
     }, [debouncedSearch, categoryFilter, upcomingFilter, typeFilter]);
 
+
+
+
     // Fetch events from API
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const res = await apiClient.get(API_ENDPOINTS.USER.ALL_EVENTS_APPROVED);
-                setEvents(res.data.data);
+                const token = localStorage.getItem('accessToken');
+
+                const endpoint = token
+                    ? API_ENDPOINTS.USER.ALL_EVENTS_APPROVED
+                    : '/api/user/allEvents/everybodyApproved';
+
+                const res = await apiClient.get(endpoint);
+                setEvents(res.data.data || []);
             } catch (error) {
                 console.error('Error fetching events:', error);
             }
         };
+
         fetchEvents();
     }, []);
+
 
     // 🔍 FILTER EVENTS - Memoized để tránh tính toán lại mỗi lần render
     // Sử dụng debouncedSearch thay vì search để giảm số lần filter
@@ -114,7 +126,7 @@ const Events: React.FC = () => {
         return filtered.sort((a, b) => {
             const dateA = new Date(a.date).getTime();
             const dateB = new Date(b.date).getTime();
-            
+
             if (upcomingFilter === 'Past Event') {
                 // Past events: sắp xếp từ muộn nhất đến sớm nhất
                 return dateB - dateA;
@@ -206,7 +218,7 @@ const Events: React.FC = () => {
                     ) : (
                         <div className="space-y-4">
                             {paginatedEvents.map(event => (
-                                <RegisteredEventCard key={event._id} event={event} showTicketCode={false}/>
+                                <RegisteredEventCard key={event._id} event={event} showTicketCode={false} />
                             ))}
                         </div>
                     )}
@@ -219,9 +231,8 @@ const Events: React.FC = () => {
                     <button
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(prev => prev - 1)}
-                        className={`px-4 py-2 rounded-lg border ${
-                            currentPage === 1 ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"
-                        }`}
+                        className={`px-4 py-2 rounded-lg border ${currentPage === 1 ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"
+                            }`}
                     >
                         Prev
                     </button>
@@ -231,11 +242,10 @@ const Events: React.FC = () => {
                         <button
                             key={index}
                             onClick={() => setCurrentPage(index + 1)}
-                            className={`px-4 py-2 rounded-lg border ${
-                                currentPage === index + 1
+                            className={`px-4 py-2 rounded-lg border ${currentPage === index + 1
                                     ? "bg-orange-500 text-white border-orange-500"
                                     : "hover:bg-gray-100"
-                            }`}
+                                }`}
                         >
                             {index + 1}
                         </button>
@@ -245,9 +255,8 @@ const Events: React.FC = () => {
                     <button
                         disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage(prev => prev + 1)}
-                        className={`px-4 py-2 rounded-lg border ${
-                            currentPage === totalPages ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"
-                        }`}
+                        className={`px-4 py-2 rounded-lg border ${currentPage === totalPages ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-100"
+                            }`}
                     >
                         Next
                     </button>

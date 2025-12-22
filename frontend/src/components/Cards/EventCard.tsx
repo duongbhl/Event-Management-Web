@@ -66,9 +66,9 @@ export const EventCard: React.FC<{ event: EventDataProp }> = React.memo(({ event
       <div className="p-4 flex flex-col grow">
         <p className="text-sm text-gray-600 mb-3 line-clamp-3">
           {event.description}
-          <span className="inline-block px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-white bg-gray-800 rounded-full mb-1 ml-76">
+          {/* <span className="inline-block px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-white bg-gray-800 rounded-full mb-1 ml-76">
             {event.category}
-          </span>
+          </span> */}
         </p>
 
         {/* Time & Location */}

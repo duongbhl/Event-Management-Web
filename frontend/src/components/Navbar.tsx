@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, LayoutDashboard } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface NavItemProps {
@@ -99,9 +99,10 @@ const Navbar: React.FC = () => {
                 {/* Navigation Links (Desktop) */}
                 <nav className="hidden md:flex space-x-1">
                     <NavItem to="/events">Events</NavItem>
-                    <NavItem to="/calendar">Calendar</NavItem>
+                    
                     {isLoggedIn && (
                         <>
+                            <NavItem to="/calendar">Calendar</NavItem>
                             <NavItem to="/myevent">My Events</NavItem>
                             <NavItem to="/addevent">Add Event</NavItem>
                             <NavItem to="/analytics">Analytics</NavItem>
@@ -116,7 +117,7 @@ const Navbar: React.FC = () => {
                         aria-label="Search"
                         className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition"
                     >
-                        <Search className="w-5 h-5" />
+                        
                     </button>
 
                     {/* User Menu hoặc Sign In Button */}

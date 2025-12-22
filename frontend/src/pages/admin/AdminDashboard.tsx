@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Search, 
-    Filter, 
-    CheckCircle, 
-    XCircle, 
-    Eye, 
+import {
+    Search,
+    Filter,
+    CheckCircle,
+    XCircle,
+    Eye,
     Calendar,
     MapPin,
     Users,
@@ -39,7 +39,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 // Category Badge Component
 const CategoryBadge: React.FC<{ category?: string }> = ({ category }) => {
     if (!category) return <span className="text-gray-400">-</span>;
-    
+
     return (
         <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-md">
             {category}
@@ -50,10 +50,10 @@ const CategoryBadge: React.FC<{ category?: string }> = ({ category }) => {
 const AdminDashboard: React.FC = () => {
     const navigate = useNavigate();
     const toast = useToast();
-    
+
     // Auth state - MUST check before rendering anything
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null); // null = checking, false = denied, true = allowed
-    
+
     // State
     const [events, setEvents] = useState<AdminEventData[]>([]);
     const [filteredEvents, setFilteredEvents] = useState<AdminEventData[]>([]);
@@ -62,7 +62,7 @@ const AdminDashboard: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
-    
+
     // Confirmation modal state
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -70,7 +70,7 @@ const AdminDashboard: React.FC = () => {
         eventId: string;
         eventTitle: string;
     }>({ isOpen: false, type: 'approve', eventId: '', eventTitle: '' });
-    
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const eventsPerPage = 8;
@@ -80,7 +80,7 @@ const AdminDashboard: React.FC = () => {
         const checkAdminAuth = () => {
             const user = localStorage.getItem('user');
             const token = localStorage.getItem('token');
-            
+
             if (!token || !user) {
                 setIsAuthorized(false);
                 navigate('/login', { replace: true });
@@ -124,7 +124,7 @@ const AdminDashboard: React.FC = () => {
         // Filter by search term
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
-            result = result.filter(event => 
+            result = result.filter(event =>
                 event.title.toLowerCase().includes(term) ||
                 event.location.toLowerCase().includes(term) ||
                 event.description.toLowerCase().includes(term) ||
@@ -167,7 +167,7 @@ const AdminDashboard: React.FC = () => {
     const handleConfirmedAction = async () => {
         const { type, eventId } = confirmModal;
         closeConfirmModal();
-        
+
         if (type === 'approve') {
             await executeApprove(eventId);
         } else {
@@ -181,9 +181,9 @@ const AdminDashboard: React.FC = () => {
             await apiClient.put(API_ENDPOINTS.ADMIN.APPROVE_EVENT(eventId));
 
             // Update local state
-            setEvents(prev => 
-                prev.map(event => 
-                    event._id === eventId 
+            setEvents(prev =>
+                prev.map(event =>
+                    event._id === eventId
                         ? { ...event, status: 'approved' as const }
                         : event
                 )
@@ -204,9 +204,9 @@ const AdminDashboard: React.FC = () => {
             await apiClient.put(API_ENDPOINTS.ADMIN.REJECT_EVENT(eventId));
 
             // Update local state
-            setEvents(prev => 
-                prev.map(event => 
-                    event._id === eventId 
+            setEvents(prev =>
+                prev.map(event =>
+                    event._id === eventId
                         ? { ...event, status: 'rejected' as const }
                         : event
                 )
@@ -255,7 +255,7 @@ const AdminDashboard: React.FC = () => {
             </div>
         );
     }
-    
+
     if (isAuthorized === false) {
         // Not authorized - show nothing, redirect is happening
         return null;
@@ -264,7 +264,7 @@ const AdminDashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <toast.ToastComponent />
-            
+
             {/* Confirmation Modal */}
             {confirmModal.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -273,7 +273,7 @@ const AdminDashboard: React.FC = () => {
                             {confirmModal.type === 'approve' ? 'Approve Event?' : 'Reject Event?'}
                         </h3>
                         <p className="text-gray-600 mb-2">
-                            {confirmModal.type === 'approve' 
+                            {confirmModal.type === 'approve'
                                 ? 'This event will be visible to all users.'
                                 : 'This event will not be published.'}
                         </p>
@@ -289,11 +289,10 @@ const AdminDashboard: React.FC = () => {
                             </button>
                             <button
                                 onClick={handleConfirmedAction}
-                                className={`flex-1 px-4 py-2 text-white rounded-lg font-medium transition ${
-                                    confirmModal.type === 'approve'
+                                className={`flex-1 px-4 py-2 text-white rounded-lg font-medium transition ${confirmModal.type === 'approve'
                                         ? 'bg-green-600 hover:bg-green-700'
                                         : 'bg-red-600 hover:bg-red-700'
-                                }`}
+                                    }`}
                             >
                                 {confirmModal.type === 'approve' ? 'Yes, Approve' : 'Yes, Reject'}
                             </button>
@@ -301,7 +300,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Header */}
             <header className="bg-white border-b border-gray-200 shadow-sm">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -313,7 +312,7 @@ const AdminDashboard: React.FC = () => {
                                 <p className="text-sm text-gray-500">Manage event approvals</p>
                             </div>
                         </div>
-                        <Link 
+                        <Link
                             to="/"
                             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
                         >
@@ -370,7 +369,7 @@ const AdminDashboard: React.FC = () => {
                         <h2 className="text-lg font-semibold text-gray-900">Event Management</h2>
                         <p className="text-sm text-gray-500">Review and manage event requests</p>
                     </div>
-                    
+
                     <div className="p-4">
                         <div className="flex flex-col md:flex-row gap-4">
                             {/* Search */}
@@ -423,7 +422,7 @@ const AdminDashboard: React.FC = () => {
                         <div>
                             <p className="font-medium text-red-800">Error loading events</p>
                             <p className="text-sm text-red-600">{error}</p>
-                            <button 
+                            <button
                                 onClick={fetchEvents}
                                 className="mt-2 text-sm font-medium text-red-700 hover:text-red-800 underline"
                             >
@@ -445,7 +444,7 @@ const AdminDashboard: React.FC = () => {
                             <Calendar className="w-16 h-16 text-gray-300 mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-1">No events found</h3>
                             <p className="text-gray-500">
-                                {searchTerm || statusFilter !== 'all' 
+                                {searchTerm || statusFilter !== 'all'
                                     ? 'Try adjusting your search or filter criteria.'
                                     : 'No events have been submitted yet.'}
                             </p>
@@ -500,8 +499,8 @@ const AdminDashboard: React.FC = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-1.5 text-sm text-gray-600 max-w-[150px]">
-                                                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                                                    <div className="flex items-center gap-1.5 text-sm text-gray-600 max-w-37.5">
+                                                        <MapPin className="w-4 h-4 shrink-0" />
                                                         <span className="truncate">{event.location}</span>
                                                     </div>
                                                 </td>
@@ -520,13 +519,10 @@ const AdminDashboard: React.FC = () => {
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {/* View Button */}
-                                                        <Link
-                                                            to={`/view-details/${event._id}`}
-                                                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                                                            title="View Details"
-                                                        >
+                                                        <Link to={`/admin/events/${event._id}`}>
                                                             <Eye className="w-4 h-4" />
                                                         </Link>
+
 
                                                         {/* Approve Button - Only show for pending */}
                                                         {event.status === 'pending' && (
@@ -588,21 +584,20 @@ const AdminDashboard: React.FC = () => {
                                         >
                                             <ChevronLeft className="w-4 h-4" />
                                         </button>
-                                        
+
                                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                             <button
                                                 key={page}
                                                 onClick={() => setCurrentPage(page)}
-                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                                                    currentPage === page
+                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${currentPage === page
                                                         ? 'bg-orange-500 text-white'
                                                         : 'hover:bg-gray-100 text-gray-700'
-                                                }`}
+                                                    }`}
                                             >
                                                 {page}
                                             </button>
                                         ))}
-                                        
+
                                         <button
                                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                             disabled={currentPage === totalPages}

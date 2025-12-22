@@ -17,6 +17,7 @@ import {
    getEventById,
    updateEvent,
    getEventAttendees,
+   getAllEvents,
 } from "../controllers/user.controller";
 import { protect } from "../middleware/auth.middleware";
 import { uploadEventImage } from "../middleware/upload.middleware";
@@ -38,10 +39,10 @@ userRouter.get("/events", protect, getAllEvent);//xong
 userRouter.put("/event/:id", protect, uploadEventImage.single("image"), updateEvent);  ///xong
 
 
-// Xem danh sách sự kiện chưa được duyệt (chỉ organizer thấy)
+// Xem danh sách sự kiện chưa được duyệt cua minh (chỉ organizer thấy)
 userRouter.get("/events/pending", protect, getAllPendingEvent);//xong
 
-// Xem danh sách sự kiện đã được duyệt (tất cả user đều thấy)
+// Xem danh sách sự kiện đã được duyệt cua minh (tất cả user đều thấy)
 userRouter.get("/events/approved", protect, getAllApprovalEvent);//xong
 
 userRouter.get("/stats/approved-last-5-months", protect, getApprovedEventsLast5Months);
@@ -50,11 +51,19 @@ userRouter.get("/stats/attendees-last-month", protect, getTotalAttendeesLastMont
 userRouter.get("/stats/revenue-last-month", protect, getTotalRevenueLastMonth);
 
 //su kien cua ng khac da dc approved
-userRouter.get("/allEvents/approved", protect, getEvents);
+userRouter.get("/allEvents/approved", getEvents);
 
 
-// Lấy chi tiết 1 event
+//su kien cua tat ca ke ca minh da duoc approved
+userRouter.get("/allEvents/everybodyApproved", getAllEvents);
+
+
+// Lấy chi tiết 1 event khi dang nhap roi
 userRouter.get("/event/:id", protect, getEventById);
+
+// Lấy chi tiết 1 event khi chua dang nhap
+userRouter.get("/public/event/:id", getEventById);
+
 
 // Lấy danh sách attendees cho một event (chỉ organizer)
 userRouter.get("/event/:eventId/attendees", protect, getEventAttendees);

@@ -90,7 +90,7 @@ const AddEvent: React.FC = () => {
         setMessage(null);
 
         // Validate required fields - check for empty strings, not falsy values (0 is valid)
-        if (!title.trim() || !date || !time || !locationName.trim() || 
+        if (!title.trim() || !date || !time || !locationName.trim() ||
             expectedAttendees === "" || expectedAttendees === null || expectedAttendees === undefined ||
             price === "" || price === null || price === undefined ||
             !description.trim()) {
@@ -219,12 +219,45 @@ const AddEvent: React.FC = () => {
                     className="w-full mb-4 p-2 border rounded-lg"
                 />
 
-                {/* IMAGE */}
-                {imagePreview && (
-                    <img src={imagePreview} className="w-full h-64 object-cover rounded-lg mb-3" />
+                {/* IMAGE PREVIEW */}
+                {imagePreview ? (
+                    <div
+                        className="relative w-full h-64 rounded-lg overflow-hidden mb-3 group cursor-pointer"
+                        onClick={() => document.getElementById('imageInput')?.click()}
+                    >
+                        <img
+                            src={imagePreview}
+                            alt="Event preview"
+                            className="w-full h-full object-cover"
+                        />
+
+                        {/* Overlay khi hover */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <span className="text-white font-medium">
+                                Click to change image
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => document.getElementById('imageInput')?.click()}
+                        className="w-full h-64 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-orange-500 hover:text-orange-600 transition mb-3"
+                    >
+                        <span className="text-lg font-medium">Upload Event Image</span>
+                        <span className="text-sm">PNG, JPG up to 5MB</span>
+                    </button>
                 )}
 
-                <input type="file" accept="image/*" onChange={handleImageChange} />
+                {/* HIDDEN INPUT */}
+                <input
+                    id="imageInput"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                />
+
 
                 {/* MESSAGE */}
                 {error && <p className="text-red-500 mt-3">{error}</p>}

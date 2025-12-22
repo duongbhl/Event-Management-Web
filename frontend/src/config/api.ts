@@ -17,10 +17,12 @@ export const API_ENDPOINTS = {
   USER: {
     EVENTS: `${API_BASE_URL}/api/user/events`,
     EVENT: (id: string) => `${API_BASE_URL}/api/user/event/${id}`,
+    PUBLIC_EVENT: (id: string) => `${API_BASE_URL}/api/user/public/event/${id}`,
     EVENT_ATTENDEES: (eventId: string) => `${API_BASE_URL}/api/user/event/${eventId}/attendees`,
     ALL_EVENTS_APPROVED: `${API_BASE_URL}/api/user/allEvents/approved`,
     EVENTS_PENDING: `${API_BASE_URL}/api/user/events/pending`,
     EVENTS_APPROVED: `${API_BASE_URL}/api/user/events/approved`,
+    EVENTS_EVERYBODY_APPROVED: `${API_BASE_URL}/api/user/allEvents/everybodyApproved`,
     CREATE_EVENT: `${API_BASE_URL}/api/user/event`,
     UPDATE_EVENT: (id: string) => `${API_BASE_URL}/api/user/event/${id}`,
     TICKETS: `${API_BASE_URL}/api/user/tickets`,
