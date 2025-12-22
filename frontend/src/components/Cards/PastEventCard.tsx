@@ -31,14 +31,15 @@ export const PastEventCard: React.FC<Props> = React.memo(({ event }) => {
                 const tickets = res.data.data;
                 // Kiểm tra đúng: tickets phải là array và có ít nhất 1 phần tử
                 const hasValidTicket = Array.isArray(tickets) && tickets.length > 0;
-                
-                // Log để debug
-                console.log(`[PastEventCard] Event ${event._id}:`, {
-                    ticketsCount: Array.isArray(tickets) ? tickets.length : 0,
-                    hasTicket: hasValidTicket,
-                    eventTitle: event.title
-                });
-                
+
+                // Debug log - dev only
+                if (import.meta.env.DEV) {
+                    console.log(`[PastEventCard] Event ${event._id}:`, {
+                        ticketsCount: Array.isArray(tickets) ? tickets.length : 0,
+                        hasTicket: hasValidTicket,
+                        eventTitle: event.title
+                    });
+                }
                 setHasTicket(hasValidTicket);
             } catch (err) {
                 console.error("Check ticket error:", err);

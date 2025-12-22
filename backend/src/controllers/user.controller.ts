@@ -451,28 +451,30 @@ export const getEventAttendees = async (req: any, res: Response) => {
              (userId.username !== undefined || userId.email !== undefined);
     });
 
-    // Log chi tiết để debug
-    console.log(`\n[getEventAttendees] Event ${eventId}:`);
-    console.log(`  - Event title: ${event.title}`);
-    console.log(`  - Event.attendees (field): ${event.attendees || 0}`);
-    console.log(`  - Query: Ticket.find({ eventId: "${eventId}", status: "booked" })`);
-    console.log(`  - Found ${tickets.length} tickets with status="booked"`);
-    console.log(`  - After populate & filter: ${validTickets.length} valid tickets`);
-    
-    if (tickets.length > 0) {
+    // Detailed debug logs - dev only
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n[getEventAttendees] Event ${eventId}:`);
+      console.log(`  - Event title: ${event.title}`);
+      console.log(`  - Event.attendees (field): ${event.attendees || 0}`);
+      console.log(`  - Query: Ticket.find({ eventId: "${eventId}", status: "booked" })`);
+      console.log(`  - Found ${tickets.length} tickets with status="booked"`);
+      console.log(`  - After populate & filter: ${validTickets.length} valid tickets`);
+      
+      if (tickets.length > 0) {
         console.log(`  - Ticket details:`);
         tickets.forEach((ticket, index) => {
-            const userId = ticket.userId as any;
-            const isValid = userId && 
-                           typeof userId === 'object' && 
-                           (userId.username !== undefined || userId.email !== undefined);
-            console.log(`    ${index + 1}. Ticket ${ticket._id}:`);
-            console.log(`       Quantity: ${ticket.quantity}, Price: $${ticket.totalPrice}`);
-            console.log(`       UserId populated: ${isValid ? '✅' : '❌'}`);
-            if (isValid && userId.username) {
-                console.log(`       User: ${userId.username} (${userId.email})`);
-            }
+          const userId = ticket.userId as any;
+          const isValid = userId && 
+                        typeof userId === 'object' && 
+                        (userId.username !== undefined || userId.email !== undefined);
+          console.log(`    ${index + 1}. Ticket ${ticket._id}:`);
+          console.log(`       Quantity: ${ticket.quantity}, Price: $${ticket.totalPrice}`);
+          console.log(`       UserId populated: ${isValid ? 'valid' : 'invalid'}`);
+          if (isValid && userId.username) {
+            console.log(`       User: ${userId.username} (${userId.email})`);
+          }
         });
+      }
     }
 
     // Tính toán thống kê từ tất cả tickets (bao gồm cả những ticket có userId null)

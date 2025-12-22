@@ -16,12 +16,23 @@ const EventCarouselCard: React.FC<Props> = ({ event }) => {
     return (
         <div className="grid md:grid-cols-2 gap-6 p-6 items-center">
             {/* Image */}
-            <div className="w-full h-64 rounded-xl overflow-hidden bg-gray-100">
-                <img
-                    src={event.image || "/event-placeholder.jpg"}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                />
+            <div className="w-full h-64 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                {event.image ? (
+                    <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center w-full h-full text-gray-400 text-sm gap-1 text-center">
+                        <div className="flex items-center justify-center w-16 h-16 rounded-full border-2 border-dashed border-gray-300">
+                            <span className="text-[11px] font-medium">No Image</span>
+                        </div>
+                        <span className="text-[11px] uppercase tracking-[0.18em]">
+                            No Image Available
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Content */}

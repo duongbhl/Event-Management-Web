@@ -2,7 +2,7 @@ import { CreatedEventCard } from '@/components/Cards/CreatedEventCard';
 import { PastEventCard } from '@/components/Cards/PastEventCard';
 import { RegisteredEventCard } from '@/components/Cards/RegisteredEventCard';
 import type { EventDataProp } from '@/components/Interfaces/EventDataProp';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import apiClient from '@/lib/axios';
 import { API_ENDPOINTS } from '@/config/api';
 

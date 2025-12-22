@@ -63,18 +63,24 @@ const ManageEvent: React.FC = () => {
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        console.log('[ManageEvent] Fetching data for eventId:', eventId);
+        if (import.meta.env.DEV) {
+          console.log('[ManageEvent] Fetching data for eventId:', eventId);
+        }
         const response = await apiClient.get(
           API_ENDPOINTS.USER.EVENT_ATTENDEES(eventId!)
         );
 
-        console.log('[ManageEvent] Full API response:', response);
-        console.log('[ManageEvent] Response data:', response.data);
-        console.log('[ManageEvent] Response data.data:', response.data?.data);
+        if (import.meta.env.DEV) {
+          console.log('[ManageEvent] Full API response:', response);
+          console.log('[ManageEvent] Response data:', response.data);
+          console.log('[ManageEvent] Response data.data:', response.data?.data);
+        }
 
         // Defensive check: Kiểm tra response structure
         if (!response.data || !response.data.data) {
-          console.error('[ManageEvent] Invalid response structure:', response.data);
+          if (import.meta.env.DEV) {
+            console.error('[ManageEvent] Invalid response structure:', response.data);
+          }
           toast.error("Invalid response from server");
           setLoading(false);
           return;
@@ -84,24 +90,30 @@ const ManageEvent: React.FC = () => {
 
         // Kiểm tra event và statistics có tồn tại không
         if (!event) {
-          console.error('[ManageEvent] Event data is missing');
+          if (import.meta.env.DEV) {
+            console.error('[ManageEvent] Event data is missing');
+          }
           toast.error("Event data not found");
           setLoading(false);
           return;
         }
 
         if (!statistics) {
-          console.error('[ManageEvent] Statistics data is missing');
+          if (import.meta.env.DEV) {
+            console.error('[ManageEvent] Statistics data is missing');
+          }
           toast.error("Statistics data not found");
           setLoading(false);
           return;
         }
 
-        console.log('[ManageEvent] Setting state with:', {
-          event: event.title,
-          attendeesCount: attendees?.length || 0,
-          statistics: statistics
-        });
+        if (import.meta.env.DEV) {
+          console.log('[ManageEvent] Setting state with:', {
+            event: event.title,
+            attendeesCount: attendees?.length || 0,
+            statistics: statistics
+          });
+        }
 
         setEvent(event);
         // Lọc bỏ các attendees có userId null hoặc undefined để tránh lỗi render
@@ -118,13 +130,15 @@ const ManageEvent: React.FC = () => {
           validAttendeesCount: validAttendees.length
         });
       } catch (error: any) {
-        console.error("[ManageEvent] Error fetching event data:", error);
-        console.error("[ManageEvent] Error details:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-          statusText: error.response?.statusText
-        });
+        if (import.meta.env.DEV) {
+          console.error("[ManageEvent] Error fetching event data:", error);
+          console.error("[ManageEvent] Error details:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            statusText: error.response?.statusText
+          });
+        }
         const errorMessage = error.response?.data?.message || error.message || "Failed to load event data";
         toast.error(errorMessage);
         if (error.response?.status === 403 || error.response?.status === 404) {
@@ -132,14 +146,18 @@ const ManageEvent: React.FC = () => {
         }
       } finally {
         setLoading(false);
-        console.log('[ManageEvent] Loading set to false');
+        if (import.meta.env.DEV) {
+          console.log('[ManageEvent] Loading set to false');
+        }
       }
     };
 
     if (eventId) {
       fetchEventData();
     } else {
-      console.error('[ManageEvent] No eventId provided');
+      if (import.meta.env.DEV) {
+        console.error('[ManageEvent] No eventId provided');
+      }
       setLoading(false);
     }
   }, [eventId, navigate]);

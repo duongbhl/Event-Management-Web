@@ -151,7 +151,10 @@ export const resetPassword = async (req: Request, res: Response) => {
 export const changePassword = async (req: Request, res: Response) => {
     try {
         const authHeader = req.headers.authorization;
-        console.log("Authorization header:", req.headers.authorization);
+        // Debug only - log auth header in non-production environments
+        if (process.env.NODE_ENV !== 'production') {
+            console.log("Authorization header:", req.headers.authorization);
+        }
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({ message: "No token provided" });
         }

@@ -7,7 +7,8 @@ const PORT = 5000
 const test = async () =>{
     await connectDB()
     app.listen(PORT,()=>{
-        console.log(`✅SERVER BẮT ĐẦU CHẠY TRÊN CỔNG http://localhost:${PORT}`);
+        // \x1b[32m = green, \x1b[0m = reset
+        console.log(`\x1b[32mServer is running at http://localhost:${PORT}\x1b[0m`);
     })
 }
 

@@ -100,7 +100,6 @@ const AddEvent: React.FC = () => {
 
         try {
             setLoading(true);
-            const token = localStorage.getItem("token");
 
             const formData = new FormData();
             formData.append("title", title);
