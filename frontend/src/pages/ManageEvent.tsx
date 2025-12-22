@@ -63,38 +63,84 @@ const ManageEvent: React.FC = () => {
     const fetchEventData = async () => {
       try {
         setLoading(true);
+        console.log('[ManageEvent] Fetching data for eventId:', eventId);
         const response = await apiClient.get(
           API_ENDPOINTS.USER.EVENT_ATTENDEES(eventId!)
         );
 
-        setEvent(response.data.data.event);
+        console.log('[ManageEvent] Full API response:', response);
+        console.log('[ManageEvent] Response data:', response.data);
+        console.log('[ManageEvent] Response data.data:', response.data?.data);
+
+        // Defensive check: Kiểm tra response structure
+        if (!response.data || !response.data.data) {
+          console.error('[ManageEvent] Invalid response structure:', response.data);
+          toast.error("Invalid response from server");
+          setLoading(false);
+          return;
+        }
+
+        const { event, attendees, statistics } = response.data.data;
+
+        // Kiểm tra event và statistics có tồn tại không
+        if (!event) {
+          console.error('[ManageEvent] Event data is missing');
+          toast.error("Event data not found");
+          setLoading(false);
+          return;
+        }
+
+        if (!statistics) {
+          console.error('[ManageEvent] Statistics data is missing');
+          toast.error("Statistics data not found");
+          setLoading(false);
+          return;
+        }
+
+        console.log('[ManageEvent] Setting state with:', {
+          event: event.title,
+          attendeesCount: attendees?.length || 0,
+          statistics: statistics
+        });
+
+        setEvent(event);
         // Lọc bỏ các attendees có userId null hoặc undefined để tránh lỗi render
-        const validAttendees = (response.data.data.attendees || []).filter(
+        const validAttendees = (attendees || []).filter(
           (attendee: Attendee) => attendee.userId && attendee.userId._id
         );
         setAttendees(validAttendees);
-        setStatistics(response.data.data.statistics);
+        setStatistics(statistics);
         
         // Log để debug
-        console.log('Event attendees data:', {
-          totalAttendees: response.data.data.statistics?.totalAttendees,
-          attendeesCount: response.data.data.attendees?.length,
+        console.log('[ManageEvent] State set successfully:', {
+          totalAttendees: statistics?.totalAttendees,
+          attendeesCount: attendees?.length,
           validAttendeesCount: validAttendees.length
         });
       } catch (error: any) {
-        console.error("Error fetching event data:", error);
-        const errorMessage = error.response?.data?.message || "Failed to load event data";
+        console.error("[ManageEvent] Error fetching event data:", error);
+        console.error("[ManageEvent] Error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          statusText: error.response?.statusText
+        });
+        const errorMessage = error.response?.data?.message || error.message || "Failed to load event data";
         toast.error(errorMessage);
         if (error.response?.status === 403 || error.response?.status === 404) {
           setTimeout(() => navigate("/myevent"), 2000);
         }
       } finally {
         setLoading(false);
+        console.log('[ManageEvent] Loading set to false');
       }
     };
 
     if (eventId) {
       fetchEventData();
+    } else {
+      console.error('[ManageEvent] No eventId provided');
+      setLoading(false);
     }
   }, [eventId, navigate]);
 
@@ -129,25 +175,8 @@ const ManageEvent: React.FC = () => {
     toast.success("CSV file downloaded successfully!");
   }, [attendees, event]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
-      </div>
-    );
-  }
-
-  if (!event || !statistics) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Event not found or you don't have permission to view it.</p>
-          <Button onClick={() => navigate("/myevent")}>Go Back</Button>
-        </div>
-      </div>
-    );
-  }
-
+  // ⚠️ QUAN TRỌNG: Tất cả hooks phải được gọi TRƯỚC các early returns
+  // để tuân thủ Rules of Hooks của React
   // Memoize các tính toán để tránh tính lại mỗi lần render
   const fillPercentage = useMemo(() => {
     if (!event || !statistics) return 0;
@@ -171,6 +200,26 @@ const ManageEvent: React.FC = () => {
     }
     return { className: 'text-blue-600', text: 'Chưa diễn ra' };
   }, [event]);
+
+  // Early returns sau khi đã gọi tất cả hooks
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
+    );
+  }
+
+  if (!event || !statistics) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Event not found or you don't have permission to view it.</p>
+          <Button onClick={() => navigate("/myevent")}>Go Back</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
