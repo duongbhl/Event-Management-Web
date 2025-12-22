@@ -63,7 +63,7 @@ export const RegisteredEventCard: React.FC<{ event: EventDataProp; showTicketCod
                                         {formatTicketCode(event.ticketId)}
                                     </p>
                                 ) : (
-                                    <p className="text-lg font-semibold text-gray-400">Chua co ma ve</p>
+                                    <p className="text-lg font-semibold text-gray-400">No ticket code</p>
                                 )}
                             </div>
                         )}

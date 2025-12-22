@@ -47,7 +47,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
                 {/* Header */}
                 <div className="text-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        Dang ky thanh cong
+                        Registered Successfully
                     </h2>
                     {eventTitle && (
                         <p className="text-sm text-gray-600">{eventTitle}</p>
@@ -69,7 +69,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
                 {/* Ticket Code */}
                 <div className="text-center mb-6">
                     <p className="text-sm font-medium text-gray-600 mb-2">
-                        Ma ve cua ban
+                        Your Ticket Code
                     </p>
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                         <p className="text-lg font-semibold text-gray-900 font-mono">
@@ -80,7 +80,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
 
                 {/* Instructions */}
                 <p className="text-sm text-gray-600 text-center mb-6">
-                    Quet ma QR tai cong vao su kien
+                    Scan the QR code at the event entrance
                 </p>
 
                 {/* Actions */}
@@ -89,13 +89,13 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
                         onClick={onClose}
                         className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
                     >
-                        Dong
+                        Close
                     </button>
                     <button
                         onClick={handleViewDetails}
                         className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition"
                     >
-                        Xem chi tiet ve
+                        View Ticket Details
                     </button>
                 </div>
             </div>
