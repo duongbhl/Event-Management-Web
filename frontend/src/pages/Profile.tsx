@@ -81,8 +81,8 @@ const Profile: React.FC = () => {
     const validateProfileForm = () => {
         setError(null);
 
-        // Name validation - letters and spaces only
-        if (profileData.fullName && !/^[a-zA-Z\s]+$/.test(profileData.fullName)) {
+        // Name validation - allow letters and spaces (Unicode support)
+        if (profileData.fullName && !/^[\p{L}\s]+$/u.test(profileData.fullName)) {
             setError('Full name should contain letters only');
             return false;
         }
