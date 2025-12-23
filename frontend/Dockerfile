@@ -2,6 +2,9 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
+# Declare build argument
+ARG VITE_API_URL=http://localhost:5000
+
 # Copy package files
 COPY package*.json ./
 RUN npm ci
@@ -9,8 +12,11 @@ RUN npm ci
 # Copy source files
 COPY . .
 
-# Build the application
-RUN npm run build
+# Set environment variable for Vite build
+ENV VITE_API_URL=$VITE_API_URL
+
+# Build the application with production mode
+RUN npm run build -- --mode production
 
 # Production stage
 FROM node:18-alpine
