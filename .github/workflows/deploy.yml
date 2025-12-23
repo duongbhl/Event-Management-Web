@@ -62,9 +62,9 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           debug: true
           port: 22
+          sync: true
           script: |
             cd ~/event-management-project
-            # Sync code từ repo (nếu dùng sync, không cần git pull)
             docker compose pull
             docker compose down
             docker compose up -d
