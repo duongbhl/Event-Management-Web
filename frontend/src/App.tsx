@@ -4,14 +4,13 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { ToastContainer } from 'react-toastify';
 import ScrollToTop from './ScrollToTop';
+import RequireAuth from './components/RequireAuth';
 
 // Lazy-loaded pages to enable route-based code splitting
 const Home = React.lazy(() => import('./pages/Home'));
 const Calendar = React.lazy(() => import('./pages/Calendar'));
 const MyEvents = React.lazy(() => import('./pages/MyEvent'));
 const ViewDetails = React.lazy(() => import('./pages/ViewDetails'));
-const Feedback = React.lazy(() => import('./pages/Feedback'));
-const FeedbackView = React.lazy(() => import('./pages/FeedbackView'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Events = React.lazy(() => import('./pages/Events'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -44,27 +43,113 @@ function AppLayout() {
       >
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/myevent" element={<MyEvents />} />
+          {/* Các route cần đăng nhập (user thường) */}
+          <Route
+            path="/calendar"
+            element={
+              <RequireAuth>
+                <Calendar />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/myevent"
+            element={
+              <RequireAuth>
+                <MyEvents />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <RequireAuth>
+                <Analytics />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/checkout/:id"
+            element={
+              <RequireAuth>
+                <Checkout />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/payment/:id"
+            element={
+              <RequireAuth>
+                <Payment />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/ticket/:id"
+            element={
+              <RequireAuth>
+                <TicketQR />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/manage-event/:eventId"
+            element={
+              <RequireAuth>
+                <ManageEvent />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/addevent/:id"
+            element={
+              <RequireAuth>
+                <AddEvent />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/addevent/"
+            element={
+              <RequireAuth>
+                <AddEvent />
+              </RequireAuth>
+            }
+          />
+
+          {/* Các route public */}
           <Route path="/view-details/:id" element={<ViewDetails />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/feedback-view/:id" element={<FeedbackView />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/checkout/:id" element={<Checkout />} />
-          <Route path="/payment/:id" element={<Payment />} />
-          <Route path="/ticket/:id" element={<TicketQR />} />
-          <Route path="/manage-event/:eventId" element={<ManageEvent />} />
-          <Route path="/addevent/:id" element={<AddEvent />} />
-          <Route path="/addevent/" element={<AddEvent />} />
           <Route path="/events" element={<Events />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/events/:id" element={<AdminViewDetails />} />
+
+          {/* Admin Routes - yêu cầu admin login */}
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth role="admin">
+                <AdminDashboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin/events/:id"
+            element={
+              <RequireAuth role="admin">
+                <AdminViewDetails />
+              </RequireAuth>
+            }
+          />
         </Routes>
       </Suspense>
       {!isAdminRoute && <Footer />}

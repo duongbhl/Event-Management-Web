@@ -107,22 +107,6 @@ export const PastEventCard: React.FC<Props> = React.memo(({ event }) => {
 
                     {/* ACTIONS */}
                     <div className="flex space-x-3 mt-4">
-                        {hasTicket && event.hasSubmittedFeedback ? (
-                            <Link
-                                to={`/feedback-view/${event._id}`}
-                                className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
-                            >
-                                View Feedback
-                            </Link>
-                        ) : hasTicket ? (
-                            <Link
-                                to={`/feedback/${event._id}`}
-                                className="px-5 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition"
-                            >
-                                Submit Feedback
-                            </Link>
-                        ) : null}
-
                         <Button
                             onClick={viewDetailsHandle}
                             className="px-5 py-2 text-sm font-medium bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
