@@ -8,7 +8,20 @@ import { adminRouter } from "./routes/admin.route"
 
 export const app = express()
 
-app.use(cors())
+// CORS configuration to support HTTPS frontend
+const corsOptions = {
+  origin: [
+    'https://nhihoangf.id.vn',
+    'http://nhihoangf.id.vn',
+    'http://localhost:3000',
+    'http://localhost:5173', // Vite dev server
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 app.use(morgan("dev"))
 
