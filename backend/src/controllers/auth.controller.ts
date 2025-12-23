@@ -264,6 +264,7 @@ export const updateAvatar = async (req: any, res: Response) => {
                 avatar: user.avatar,
                 user: {
                     id: user._id,
+                    full_name: user.username,
                     username: user.username,
                     email: user.email,
                     avatar: user.avatar,
