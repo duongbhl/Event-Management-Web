@@ -66,6 +66,7 @@ jobs:
           script: |
             cd ~/event-management-project
             git pull origin main  # Pull code mới để có docker-compose.yml mới
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             docker compose pull
             docker compose down
             docker compose up -d

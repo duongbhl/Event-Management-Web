@@ -2,9 +2,12 @@ version: '3.8'
 
 services:
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+    # Sử dụng image từ Docker Hub (đã được build trong GitHub Actions)
+    # Nếu muốn build local, uncomment phần build và comment phần image
+    image: ${DOCKER_USERNAME:-yourusername}/event-management-backend:latest
+    # build: 
+    #   context: ./backend
+    #   dockerfile: Dockerfile
     container_name: event-backend
     restart: unless-stopped
     ports:
@@ -15,11 +18,14 @@ services:
       - event-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=http://103.180.139.204:5000
+    # Sử dụng image từ Docker Hub (đã được build với HTTPS URL trong GitHub Actions)
+    # Nếu muốn build local, uncomment phần build và comment phần image
+    image: ${DOCKER_USERNAME:-yourusername}/event-management-frontend:latest
+    # build:
+    #   context: ./frontend
+    #   dockerfile: Dockerfile
+    #   args:
+    #     - VITE_API_URL=https://nhihoangf.id.vn
     container_name: event-frontend
     restart: unless-stopped
     ports:

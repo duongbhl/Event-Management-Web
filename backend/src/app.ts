@@ -8,17 +8,36 @@ import { adminRouter } from "./routes/admin.route"
 
 export const app = express()
 
+// Trust proxy - quan trọng khi chạy sau nginx và Cloudflare
+// Cho phép Express nhận đúng IP và protocol từ X-Forwarded-* headers
+app.set('trust proxy', true)
+
 // CORS configuration to support HTTPS frontend
+// Dynamic origin function để hỗ trợ cả HTTP và HTTPS từ Cloudflare
 const corsOptions = {
-  origin: [
-    'https://nhihoangf.id.vn',
-    'http://nhihoangf.id.vn',
-    'http://localhost:3000',
-    'http://localhost:5173', // Vite dev server
-  ],
+  origin: function (origin, callback) {
+    // Cho phép requests không có origin (như mobile apps hoặc Postman)
+    if (!origin) return callback(null, true)
+    
+    const allowedOrigins = [
+      'https://nhihoangf.id.vn',
+      'http://nhihoangf.id.vn',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173', // Vite dev server
+    ]
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400, // 24 hours
 }
 
 app.use(cors(corsOptions))
