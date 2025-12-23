@@ -62,10 +62,9 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           debug: true
           port: 22
-          sync: true
           script: |
             cd ~/event-management-project
-            git pull origin main  # Pull code mới để có docker-compose.yml mới
+            # Sync code từ repo (nếu dùng sync, không cần git pull)
             docker compose pull
             docker compose down
             docker compose up -d
