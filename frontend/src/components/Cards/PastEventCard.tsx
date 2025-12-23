@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { CalendarIcon, Clock, MapPin, CheckCircle } from "lucide-react";
 import type { EventDataProp } from "../Interfaces/EventDataProp";
 import { Button } from "../ui/button";
