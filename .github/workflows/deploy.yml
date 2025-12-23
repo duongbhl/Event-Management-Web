@@ -65,6 +65,7 @@ jobs:
           sync: true
           script: |
             cd ~/event-management-project
+            git pull origin main  # Pull code mới để có docker-compose.yml mới
             docker compose pull
             docker compose down
             docker compose up -d
