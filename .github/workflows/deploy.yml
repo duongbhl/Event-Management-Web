@@ -51,7 +51,7 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/event-management-frontend:latest
           cache-to: type=inline
           build-args: |
-            VITE_API_URL=http://nhihoangf.id.vn:5000
+            VITE_API_URL=https://nhihoangf.id.vn
 
       # --- 6. DEPLOY TO VPS ---
       - name: Deploy to VPS
