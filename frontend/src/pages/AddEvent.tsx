@@ -83,18 +83,38 @@ const AddEvent: React.FC = () => {
         setImagePreview(URL.createObjectURL(file));
     };
 
+    const validateForm = (): string | null => {
+        if (!title.trim()) return "Event title is required";
+        if (!date) return "Date is required";
+        if (!time) return "Time is required";
+        if (!locationName.trim()) return "Location is required";
+
+        if (expectedAttendees === "" || expectedAttendees === null)
+            return "Expected attendees is required";
+        if (expectedAttendees < 1)
+            return "Expected attendees must be at least 1";
+
+        if (price === "" || price === null)
+            return "Price is required";
+        if (price < 0)
+            return "Price cannot be negative";
+
+        if (!description.trim())
+            return "Description is required";
+
+        return null; // ✅ hợp lệ
+    };
+
+
     // ================= SUBMIT =================
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setMessage(null);
 
-        // Validate required fields - check for empty strings, not falsy values (0 is valid)
-        if (!title.trim() || !date || !time || !locationName.trim() ||
-            expectedAttendees === "" || expectedAttendees === null || expectedAttendees === undefined ||
-            price === "" || price === null || price === undefined ||
-            !description.trim()) {
-            setError("All required fields must be filled");
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
@@ -118,25 +138,19 @@ const AddEvent: React.FC = () => {
 
             const method = isEditMode ? "put" : "post";
 
-            await apiClient({
-                method,
-                url,
-                data: formData,
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            await apiClient({ method, url, data: formData });
 
-            setMessage(
-                isEditMode ? "Event updated successfully!" : "Event created successfully!"
+            setMessage(isEditMode
+                ? "Event updated successfully!"
+                : "Event created successfully!"
             );
 
-            setTimeout(() => {
-                navigate("/myevent");
-            }, 800);
+            setTimeout(() => navigate("/myevent"), 800);
         } catch (err) {
-            console.error(err);
-            setError(isEditMode ? "Failed to update event" : "Failed to create event");
+            setError(isEditMode
+                ? "Failed to update event"
+                : "Failed to create event"
+            );
         } finally {
             setLoading(false);
         }
@@ -180,8 +194,12 @@ const AddEvent: React.FC = () => {
                     type="number"
                     icon={<Users size={16} />}
                     value={expectedAttendees}
-                    onChange={(v: string) => setExpectedAttendees(v === "" ? "" : Number(v))}
+                    onChange={(v: string) => {
+                        const num = Number(v);
+                        if (num >= 0 || v === "") setExpectedAttendees(v === "" ? "" : num);
+                    }}
                 />
+
 
                 {/* PRICE */}
                 <Input
@@ -189,8 +207,12 @@ const AddEvent: React.FC = () => {
                     type="number"
                     icon={<DollarSign size={16} />}
                     value={price}
-                    onChange={(v: string) => setPrice(v === "" ? "" : Number(v))}
+                    onChange={(v: string) => {
+                        const num = Number(v);
+                        if (num >= 0 || v === "") setPrice(v === "" ? "" : num);
+                    }}
                 />
+
 
                 {/* CATEGORY */}
                 <select
