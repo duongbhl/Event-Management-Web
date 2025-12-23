@@ -118,21 +118,6 @@ export const updateEvent = async (req: any, res: Response) => {
 export const getAllEvent = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const now = new Date();
-    
-    // Auto-reject events that have passed but are still pending
-    // Tự động reject các events đã quá ngày nhưng vẫn còn pending
-    await Event.updateMany(
-      {
-        organizerId: userId,
-        status: "pending",
-        date: { $lt: now }
-      },
-      {
-        $set: { status: "rejected" }
-      }
-    );
-    
     const events = await Event.find({ organizerId: userId });
     res.status(200).json({ data: events });
   } catch (error) {
