@@ -10,20 +10,7 @@ import { uploadToCloudinary } from '../middleware/upload.middleware';
 export const createEvent = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const { title, date, time, location, expectedAttendees, price, description, category } = req.body;
-
-    let imageUrl: string | undefined = undefined;
-
-    // Nếu có file upload, upload lên Cloudinary
-    if (req.file) {
-      imageUrl = await uploadToCloudinary(
-        req.file.buffer,
-        'event-management/events',
-        [{ width: 1200, height: 630, crop: 'fill' }]
-      );
-    }
-
-    const newEvent = await Event.create({
+    const {
       title,
       date,
       time,
@@ -32,18 +19,83 @@ export const createEvent = async (req: any, res: Response) => {
       price,
       description,
       category,
+    } = req.body;
+
+    // ===== BASIC VALIDATION =====
+    if (!title || !date || !time || !location || !description) {
+      return res.status(400).json({
+        message: "All required fields must be filled",
+      });
+    }
+
+    if (Number(expectedAttendees) < 1) {
+      return res.status(400).json({
+        message: "Expected attendees must be at least 1",
+      });
+    }
+
+    if (Number(price) < 0) {
+      return res.status(400).json({
+        message: "Price cannot be negative",
+      });
+    }
+
+    // ===== DATE VALIDATION (>= today + 3 days) =====
+    const eventDate = new Date(date);
+    const now = new Date();
+    const minDate = new Date();
+    minDate.setDate(now.getDate() + 3);
+
+    // Reset time để so sánh đúng ngày
+    eventDate.setHours(0, 0, 0, 0);
+    minDate.setHours(0, 0, 0, 0);
+
+    if (eventDate < minDate) {
+      return res.status(400).json({
+        message: "Event date must be at least 3 days from today",
+      });
+    }
+
+    // ===== IMAGE UPLOAD =====
+    let imageUrl: string | undefined = undefined;
+
+    if (req.file) {
+      imageUrl = await uploadToCloudinary(
+        req.file.buffer,
+        "event-management/events",
+        [{ width: 1200, height: 630, crop: "fill" }]
+      );
+    }
+
+    // ===== CREATE EVENT =====
+    const newEvent = await Event.create({
+      title: title.trim(),
+      date: eventDate,
+      time,
+      location: location.trim(),
+      expectedAttendees: Number(expectedAttendees),
+      price: Number(price),
+      description: description.trim(),
+      category,
       image: imageUrl,
       organizerId: userId,
       attendees: 0,
-      status: "pending"
+      status: "pending",
     });
 
-    res.status(201).json({ message: "Event created, pending approval", data: newEvent });
+    res.status(201).json({
+      message: "Event created successfully and pending approval",
+      data: newEvent,
+    });
   } catch (error) {
     console.error("Error in createEvent:", error);
-    res.status(500).json({ message: "Event creation failed", error });
+    res.status(500).json({
+      message: "Event creation failed",
+      error,
+    });
   }
 };
+
 
 // --- UPDATE EVENT ---
 export const updateEvent = async (req: any, res: Response) => {
@@ -131,19 +183,19 @@ export const getAllEvent = async (req: any, res: Response) => {
 export const getAllPendingEvent = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const events = await Event.find({ organizerId:userId,status: "pending" });
+    const events = await Event.find({ organizerId: userId, status: "pending" });
     res.status(200).json({ message: "Pending events fetched", data: events });
   } catch (error) {
     console.error("Error in getAllApprovalEvent:", error);
     res.status(500).json({ message: "Server Error" });
   }
-};  
+};
 
 //lay event da approve cua minh
 export const getAllApprovalEvent = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const events = await Event.find({ organizerId:userId,status: "approved" });
+    const events = await Event.find({ organizerId: userId, status: "approved" });
     res.status(200).json({ message: "Approved events fetched", data: events });
   } catch (error) {
     console.error("Error in getAllApprovalEvent:", error);
@@ -248,7 +300,7 @@ export const getTotalRevenueLastMonth = async (req: any, res: Response) => {
 export const getEvents = async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
-    const events = await Event.find({status:"approved",organizerId:{ $ne: userId }});
+    const events = await Event.find({ status: "approved", organizerId: { $ne: userId } });
     res.status(200).json({ data: events });
   } catch (error) {
     console.error("Error in getAllEvent:", error);
@@ -260,7 +312,7 @@ export const getEvents = async (req: any, res: Response) => {
 //lay event cua tat ca moi nguoi ke ca minh(approved)
 export const getAllEvents = async (req: any, res: Response) => {
   try {
-    const events = await Event.find({status:"approved"});
+    const events = await Event.find({ status: "approved" });
     res.status(200).json({ data: events });
   } catch (error) {
     console.error("Error in getAllEvents:", error);
@@ -292,23 +344,23 @@ export const bookTicket = async (req: any, res: Response) => {
 
     // Enforce quantity = 1 (mỗi user chỉ được đặt 1 vé cho mỗi sự kiện)
     const ticketQuantity = 1;
-    
+
     // Kiểm tra event đã qua chưa
     const eventDate = new Date(event.date);
     const now = new Date();
     if (eventDate < now) {
-      return res.status(400).json({ 
-        message: "This event has already ended. You cannot register for past events." 
+      return res.status(400).json({
+        message: "This event has already ended. You cannot register for past events."
       });
     }
-    
+
     // Option 4: Ngăn organizer đăng ký event của chính mình
     if (event.organizerId.toString() === userId) {
-      return res.status(400).json({ 
-        message: "You are the organizer of this event. You don't need to register. You can manage the event from 'Created By Me' section." 
+      return res.status(400).json({
+        message: "You are the organizer of this event. You don't need to register. You can manage the event from 'Created By Me' section."
       });
     }
-    
+
     // check xem user đã có ticker booked chưa
     const existingTicket = await Ticket.findOne({
       userId,
@@ -317,8 +369,8 @@ export const bookTicket = async (req: any, res: Response) => {
     });
 
     if (existingTicket) {
-      return res.status(400).json({ 
-        message: "Bạn đã đặt vé cho sự kiện này rồi. Mỗi người chỉ được đăng ký 1 lần cho mỗi sự kiện." 
+      return res.status(400).json({
+        message: "Bạn đã đặt vé cho sự kiện này rồi. Mỗi người chỉ được đăng ký 1 lần cho mỗi sự kiện."
       });
     }
 
@@ -431,9 +483,9 @@ export const getEventAttendees = async (req: any, res: Response) => {
       const userId = ticket.userId as any;
       // Kiểm tra nếu userId là object đã được populate thành công (có username hoặc email)
       // Nếu userId là ObjectId string hoặc null thì bỏ qua
-      return userId && 
-             typeof userId === 'object' && 
-             (userId.username !== undefined || userId.email !== undefined);
+      return userId &&
+        typeof userId === 'object' &&
+        (userId.username !== undefined || userId.email !== undefined);
     });
 
     // Detailed debug logs - dev only
@@ -444,14 +496,14 @@ export const getEventAttendees = async (req: any, res: Response) => {
       console.log(`  - Query: Ticket.find({ eventId: "${eventId}", status: "booked" })`);
       console.log(`  - Found ${tickets.length} tickets with status="booked"`);
       console.log(`  - After populate & filter: ${validTickets.length} valid tickets`);
-      
+
       if (tickets.length > 0) {
         console.log(`  - Ticket details:`);
         tickets.forEach((ticket, index) => {
           const userId = ticket.userId as any;
-          const isValid = userId && 
-                        typeof userId === 'object' && 
-                        (userId.username !== undefined || userId.email !== undefined);
+          const isValid = userId &&
+            typeof userId === 'object' &&
+            (userId.username !== undefined || userId.email !== undefined);
           console.log(`    ${index + 1}. Ticket ${ticket._id}:`);
           console.log(`       Quantity: ${ticket.quantity}, Price: $${ticket.totalPrice}`);
           console.log(`       UserId populated: ${isValid ? 'valid' : 'invalid'}`);
@@ -466,7 +518,7 @@ export const getEventAttendees = async (req: any, res: Response) => {
     const totalAttendees = tickets.reduce((sum, ticket) => sum + (ticket.quantity || 0), 0);
     const totalRevenue = tickets.reduce((sum, ticket) => sum + (ticket.totalPrice || 0), 0);
     const bookedCount = tickets.length;
-    
+
     console.log(`  - Statistics: totalAttendees=${totalAttendees}, totalRevenue=$${totalRevenue}, bookedCount=${bookedCount}`);
     console.log(`  - Difference with Event.attendees field: ${(event.attendees || 0) - totalAttendees}\n`);
 

@@ -83,11 +83,36 @@ const AddEvent: React.FC = () => {
         setImagePreview(URL.createObjectURL(file));
     };
 
+
+    // ================= MIN DATE FOR DATE INPUT =================
+    const getMinDate = () => {
+        const d = new Date();
+        d.setDate(d.getDate() + 3);
+        return d.toISOString().split("T")[0];
+    };
+
+
+
+    // ================= VALIDATION =================
     const validateForm = (): string | null => {
         if (!title.trim()) return "Event title is required";
         if (!date) return "Date is required";
         if (!time) return "Time is required";
         if (!locationName.trim()) return "Location is required";
+
+        // ⏰ Validate date >= today + 3 days
+        const selectedDate = new Date(date);
+        const now = new Date();
+        const minDate = new Date();
+        minDate.setDate(now.getDate() + 3);
+
+        // Reset time để so sánh đúng ngày
+        selectedDate.setHours(0, 0, 0, 0);
+        minDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < minDate) {
+            return "Event date must be at least 3 days from today";
+        }
 
         if (expectedAttendees === "" || expectedAttendees === null)
             return "Expected attendees is required";
@@ -104,6 +129,7 @@ const AddEvent: React.FC = () => {
 
         return null; // ✅ hợp lệ
     };
+
 
 
     // ================= SUBMIT =================
@@ -180,7 +206,7 @@ const AddEvent: React.FC = () => {
                 <Input label="Event Title" icon={<FileText size={16} />} value={title} onChange={setTitle} />
 
                 {/* DATE */}
-                <Input label="Date" type="date" icon={<Calendar size={16} />} value={date} onChange={setDate} />
+                <Input label="Date" type="date" icon={<Calendar size={16} />} value={date} onChange={setDate} min={getMinDate()} />
 
                 {/* TIME */}
                 <Input label="Time" type="time" icon={<Calendar size={16} />} value={time} onChange={setTime} />
@@ -312,6 +338,7 @@ const Input = ({
     value,
     onChange,
     type = "text",
+    min,
 }: any) => (
     <label className="block mb-4">
         <div className="flex items-center gap-2 mb-1 text-sm font-medium">
@@ -320,8 +347,10 @@ const Input = ({
         <input
             type={type}
             value={value}
+            min={min}
             onChange={(e) => onChange(e.target.value)}
             className="w-full p-2 border rounded-lg"
         />
     </label>
 );
+
