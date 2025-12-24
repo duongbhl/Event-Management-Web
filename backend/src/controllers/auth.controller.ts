@@ -104,14 +104,26 @@ export const forgotPassword = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-
         const resetToken = crypto.randomBytes(32).toString("hex");
         user.resetPasswordToken = resetToken;
-        user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 1 hour
+        user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
         await user.save();
 
-        const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-        const message = `Bạn nhận được email này vì đã yêu cầu đổi mật khẩu.\nNhấn vào link sau để đặt lại mật khẩu:\n${resetURL}\n\nLink chỉ có hiệu lực 15 phút.`;
+        // Xác định URL frontend dùng để reset password
+        // Ưu tiên biến môi trường CLIENT_URL, nếu không có thì lấy từ request (origin hoặc host)
+        const rawClientUrl =
+            process.env.CLIENT_URL ||
+            req.headers.origin ||
+            `${req.protocol}://${req.headers.host}`;
+
+        // Loại bỏ dấu / ở cuối (nếu có) để tránh bị // trong URL
+        const normalizedClientUrl = rawClientUrl.replace(/\/+$/, "");
+
+        const resetURL = `${normalizedClientUrl}/reset-password/${encodeURIComponent(resetToken)}`;
+        const message =
+            `Bạn nhận được email này vì đã yêu cầu đổi mật khẩu.\n` +
+            `Nhấn vào link sau để đặt lại mật khẩu:\n${resetURL}\n\n` +
+            `Link chỉ có hiệu lực 15 phút.`;
 
         await sendEmail(user.email, "Đặt lại mật khẩu EventFlow", message);
 
