@@ -5,16 +5,26 @@ import axios from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Create axios instance with default config
+// ⚠️ Không set cứng 'Content-Type' ở đây để tránh lỗi khi gửi FormData (upload file)
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
+    // Nếu body là FormData thì để browser tự set 'multipart/form-data'
+    if (config.data instanceof FormData) {
+      if (config.headers) {
+        delete config.headers['Content-Type'];
+      }
+    } else {
+      // Với các request JSON thông thường, đảm bảo Content-Type là application/json
+      if (config.headers && !config.headers['Content-Type']) {
+        config.headers['Content-Type'] = 'application/json';
+      }
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
